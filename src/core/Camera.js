@@ -1,0 +1,18 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+class Camera {
+    constructor() {
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera.position.set(0, 5, 10);
+
+        this.controls = new OrbitControls(this.camera, document.body);
+        this.controls.enableDamping = true;
+    }
+
+    update() {
+        this.controls.update();
+    }
+}
+
+export default new Camera();
