@@ -4,8 +4,10 @@ import Renderer from './core/Renderer';
 import Camera from './core/Camera';
 import Lighting from './core/Lighting';
 import PrimitiveFactory from './models/PrimitiveFactory'; 
+import SceneGraphManager from './managers/SceneGraphManager';
 
-PrimitiveFactory.createCube();
+SceneGraphManager.addObject(PrimitiveFactory.createCube());
+SceneGraphManager.addObject(PrimitiveFactory.createSphere());
 
 // Update loop
 function animate() {
