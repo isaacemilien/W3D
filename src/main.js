@@ -1,14 +1,11 @@
-// main.js - Entry point
+import * as THREE from 'three'
 import Scene from './core/Scene';
 import Renderer from './core/Renderer';
 import Camera from './core/Camera';
 import Lighting from './core/Lighting';
-import * as THREE from 'three'
+import PrimitiveFactory from './models/PrimitiveFactory'; 
 
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const cube = new THREE.Mesh(geometry, material);
-Scene.addObject(cube);
+PrimitiveFactory.createCube();
 
 // Update loop
 function animate() {
