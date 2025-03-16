@@ -6,6 +6,8 @@ class PrimitiveFactory {
         const geometry = new THREE.BoxGeometry(size, size, size);
         const material = new THREE.MeshStandardMaterial({ color: 0x0077ff });
         const cube = new THREE.Mesh(geometry, material);
+        cube.userData.name = "My cube";
+
         return cube;
     }
 
@@ -13,6 +15,8 @@ class PrimitiveFactory {
         const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
         const material = new THREE.MeshStandardMaterial({ color: 0xff7700 });
         const sphere = new THREE.Mesh(geometry, material);
+        sphere.userData.name = "My sphere";
+
         return sphere;
     }
 
@@ -20,6 +24,8 @@ class PrimitiveFactory {
         const geometry = new THREE.BoxGeometry(width, height, depth);
         const material = new THREE.MeshStandardMaterial({ color: 0x00ff77 });
         const cuboid = new THREE.Mesh(geometry, material);
+        cuboid.userData.name = "My cuboid";
+
         return cuboid;
     }
 }

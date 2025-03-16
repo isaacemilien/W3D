@@ -4,20 +4,11 @@ import Renderer from './core/Renderer';
 import Camera from './core/Camera';
 import Lighting from './core/Lighting';
 import PrimitiveFactory from './models/PrimitiveFactory';
-import SceneGraphManager from './managers/SceneGraphManager';
 import SelectionManager from './managers/SelectionManager';
-import { TransformControls } from 'three/examples/jsm/Addons.js';
-
-const transformControls = new TransformControls(Camera.camera, Renderer.renderer.domElement);
-Scene.scene.add(transformControls.getHelper());
+import SceneGraphManager from './managers/SceneGraphManager';
 
 SceneGraphManager.addObject(PrimitiveFactory.createCube());
-const selectionManager = new SelectionManager(Scene, Renderer, Camera, transformControls, SceneGraphManager);
-
-// Toggle orbit controls on transform control move
-transformControls.addEventListener('dragging-changed', function (event) {
-    Camera.controls.enabled = !event.value;
-});
+SceneGraphManager.addObject(PrimitiveFactory.createSphere());
 
 // Update loop
 function animate() {
