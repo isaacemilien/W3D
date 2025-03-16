@@ -1,33 +1,57 @@
-#outliner {
+body {
+  font-family: 'Noto Sans', Arial, sans-serif;
+}
+
+#outliner-container {
   position: absolute;
+  background-color: #3a3a3a;
   width: 15%;
   height: 100%;
-  background-color: #3a3a3a;
 }
 
-#outliner p{
-  color: #ebeceb;
+#outliner-title {
+  color: #ffffff;
   padding-left: 10%;
+  margin: 0;
+  padding: 4% 0 4% 10%;
+  background-color: #464645;
 }
 
-#outliner ul {
-  list-style-type: none;
+#outliner-content {
+  height: 100%;
+  background-color: #3a3a3a;
+  border: 4px solid #464645;
+  border-top: none;
+}
+
+#outliner-content ul {
   padding-left: 0;
 }
 
-#outliner ul li button {
+#outliner-content ul li button {
   width: 100%;
   border-radius: 0;
   background: none;
-	color: #ebeceb;
-	border: none;
-	padding: 0;
-	font: inherit;
-	cursor: pointer;
-	outline: inherit;
+  color: #ebeceb;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  text-align: left;
+  padding: 4% 0 4% 20%;
 }
 
-#outliner ul li button:hover{
+#outliner-content ul li button:hover {
+  background-color: #303030;
+}
+
+#scene-graph{
+  margin-top: 0;
+}
+
+
+/* Color on selection attempt */
+/* #outliner-content ul li button::selection {
   background-color: #6484a0;
-}
-
+} */
