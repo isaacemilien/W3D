@@ -9,7 +9,6 @@ import SelectionManager from './managers/SelectionManager';
 import { TransformControls } from 'three/examples/jsm/Addons.js';
 
 const transformControls = new TransformControls(Camera.camera, Renderer.renderer.domElement);
-
 Scene.scene.add(transformControls.getHelper());
 
 SceneGraphManager.addObject(PrimitiveFactory.createCube());
