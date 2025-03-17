@@ -10,6 +10,15 @@ import SceneGraphManager from './managers/SceneGraphManager';
 SceneGraphManager.addObject(PrimitiveFactory.createCube());
 SceneGraphManager.addObject(PrimitiveFactory.createSphere());
 
+// Temp add object definition, move later
+document.getElementById("add-cube").addEventListener("click", () => {
+    SceneGraphManager.addObject(PrimitiveFactory.createCube());
+});
+
+document.getElementById("add-sphere").addEventListener("click", () => {
+    SceneGraphManager.addObject(PrimitiveFactory.createSphere());
+});
+
 // Update loop
 function animate() {
     requestAnimationFrame(animate);
