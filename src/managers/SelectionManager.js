@@ -71,7 +71,6 @@ class SelectionManager {
                 // o.userData.meshReference.material.color.set(o.userData.originalColor);
             }
         });
-        this.transformControls.setMode("translate");
     }
 }
 

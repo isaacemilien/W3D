@@ -19,6 +19,18 @@ document.getElementById("add-sphere").addEventListener("click", () => {
     SceneGraphManager.addObject(PrimitiveFactory.createSphere());
 });
 
+document.getElementById("move").addEventListener("click", () => {
+    SelectionManager.transformControls.setMode("translate")
+});
+
+document.getElementById("rot").addEventListener("click", () => {
+    SelectionManager.transformControls.setMode("rotate")
+});
+
+document.getElementById("scale").addEventListener("click", () => {
+    SelectionManager.transformControls.setMode("scale")
+});
+
 // Update loop
 function animate() {
     requestAnimationFrame(animate);
