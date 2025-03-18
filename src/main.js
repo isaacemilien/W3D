@@ -21,20 +21,22 @@ Scene.scene.add(gridHelper);
 
 
 
-const heMesh = new HEMesh();
-heMesh.createBox(1);
-let geometry = heMesh.toBufferGeometry();
-const material = new THREE.MeshStandardMaterial({ color: "red", flatShading: false });
-const mesh = new THREE.Mesh(geometry, material);
-mesh.userData.vertices = heMesh.vertices;
-mesh.userData.edges = heMesh.edges;
-mesh.userData.faces = heMesh.faces;
+// Create the HEMesh sphere
+const myHEMesh = new HEMesh();
+myHEMesh.createBox();
+const sphereGeom = myHEMesh.toBufferGeometry();
+const material = new THREE.MeshNormalMaterial();
+const sphereMesh = new THREE.Mesh(sphereGeom, material);
+Scene.scene.add(sphereMesh);
+SceneGraphManager.addObject(sphereMesh, null, myHEMesh);
 
-// Scene.scene.add(mesh);
-
-SceneGraphManager.addObject(mesh, null, heMesh);
-
-console.log(SceneGraphManager.getUnpackedSceneGraphMeshes());
+// Create the HEMesh sphere
+const myHEMesh2 = new HEMesh();
+myHEMesh2.createBox();
+const boxGeom = myHEMesh2.toBufferGeometry();
+const boxMesh = new THREE.Mesh(boxGeom, material);
+Scene.scene.add(boxMesh);
+SceneGraphManager.addObject(boxMesh, null, myHEMesh2);
 
 
 // Update loop  

@@ -3,22 +3,22 @@ import * as THREE from 'three'
 class HEVertex {
     constructor(position) {
         this.position = new THREE.Vector3().copy(position);
-        this.edge = null; 
+        this.edge = null;
     }
 }
 
 class HEEdge {
     constructor() {
-        this.vertex = null; 
-        this.face = null; 
-        this.next = null; 
-        this.opposite = null; 
+        this.vertex = null;
+        this.face = null;
+        this.next = null;
+        this.opposite = null;
     }
 }
 
 class HEFace {
     constructor() {
-        this.edge = null; 
+        this.edge = null;
         // For convenience, you could store normal or other attributes here
     }
 }
@@ -112,39 +112,161 @@ class HEMesh {
         }
     }
 
-    // Convert the half-edge mesh into a Three.js BufferGeometry for rendering
+
+    createSphere(radius = 1, widthSegments = 16, heightSegments = 16) {
+        // Clear any existing data if you want to reuse the mesh object
+        this.vertices = [];
+        this.edges = [];
+        this.faces = [];
+
+        //  Helper function to add one triangular face (iA->iB->iC) 
+        // Creates 3 half-edges, links them together, and points them to the given vertices.
+        const addFace = (iA, iB, iC) => {
+            const face = new HEFace();
+
+            const e0 = new HEEdge();
+            const e1 = new HEEdge();
+            const e2 = new HEEdge();
+
+            // Store face & edges
+            this.faces.push(face);
+            this.edges.push(e0, e1, e2);
+
+            // Face <-> half-edges
+            face.edge = e0;
+            e0.face = face;
+            e1.face = face;
+            e2.face = face;
+
+            // next pointers in the cycle (triangle)
+            e0.next = e1;
+            e1.next = e2;
+            e2.next = e0;
+
+            // Half-edge to vertex assignments
+            // If the triangle is (iA, iB, iC), we can store them so that:
+            //  e0 goes to iB, e1 goes to iC, e2 goes to iA.
+            e0.vertex = this.vertices[iB];
+            e1.vertex = this.vertices[iC];
+            e2.vertex = this.vertices[iA];
+
+            // For convenience, let each vertex reference the half-edge that enters it
+            this.vertices[iA].edge = e2; // e2 enters iA
+            this.vertices[iB].edge = e0; // e0 enters iB
+            this.vertices[iC].edge = e1; // e1 enters iC
+        };
+
+        //  Create sphere vertices on a grid (like latitude/longitude) 
+        //  have (heightSegments + 1) horizontal rings and
+        // (widthSegments + 1) vertices per ring.
+        const grid = [];
+
+        for (let iy = 0; iy <= heightSegments; iy++) {
+            const row = [];
+
+            // v goes from 0 (top) to 1 (bottom)
+            const v = iy / heightSegments;
+            // phi is polar angle from top (0) to bottom (π)
+            const phi = v * Math.PI;
+
+            for (let ix = 0; ix <= widthSegments; ix++) {
+                // u goes from 0 to 1 around the equator
+                const u = ix / widthSegments;
+                // theta is the azimuthal angle (0..2π)
+                const theta = u * Math.PI * 2;
+
+                // Convert spherical -> Cartesian
+                const x = -radius * Math.cos(theta) * Math.sin(phi);
+                const y = radius * Math.cos(phi);
+                const z = radius * Math.sin(theta) * Math.sin(phi);
+
+                // Create a vertex in the HEMesh
+                const vertex = new HEVertex(new THREE.Vector3(x, y, z));
+                this.vertices.push(vertex);
+
+                // Record the index of this new vertex in the row array
+                row.push(this.vertices.length - 1);
+            }
+            grid.push(row);
+        }
+
+        //  Create faces by connecting adjacent vertices in each grid cell 
+        // Each cell is made of two triangles: (a,b,d) + (b,c,d)
+        for (let iy = 0; iy < heightSegments; iy++) {
+            for (let ix = 0; ix < widthSegments; ix++) {
+                const a = grid[iy][ix];
+                const b = grid[iy][ix + 1];
+                const c = grid[iy + 1][ix + 1];
+                const d = grid[iy + 1][ix];
+
+                // top triangle (a,b,d) if not the top-most row
+                if (iy !== 0) {
+                    addFace(a, b, d);
+                }
+                // bottom triangle (b,c,d) if not the bottom-most row
+                if (iy !== heightSegments - 1) {
+                    addFace(b, c, d);
+                }
+            }
+        }
+
+        //  Find and assign opposite edges 
+        // eA and eB are opposites if:
+        //   eA.vertex === eB.next.vertex && eB.vertex === eA.next.vertex
+        for (let i = 0; i < this.edges.length; i++) {
+            const eA = this.edges[i];
+            for (let j = i + 1; j < this.edges.length; j++) {
+                const eB = this.edges[j];
+                if (eA.vertex === eB.next.vertex && eB.vertex === eA.next.vertex) {
+                    eA.opposite = eB;
+                    eB.opposite = eA;
+                }
+            }
+        }
+    }
+
     toBufferGeometry() {
-        // Collect faces as triangles. Each quad can be formed by two triangles
         const positions = [];
+
         for (let face of this.faces) {
-            // get the 4 vertices for the face
             const verts = [];
             let startEdge = face.edge;
             let current = startEdge;
+            // Gather all vertices for this face (e.g., 3 for a triangle, 4 for a quad)
             do {
                 verts.push(current.vertex.position);
                 current = current.next;
             } while (current !== startEdge);
 
-            // Triangulate the quad (verts 0,1,2) and (0,2,3)
-            if (verts.length === 4) {
+            // If it's a triangle (3 verts)
+            if (verts.length === 3) {
                 positions.push(
                     verts[0].x, verts[0].y, verts[0].z,
                     verts[1].x, verts[1].y, verts[1].z,
-                    verts[2].x, verts[2].y, verts[2].z,
-
-                    verts[0].x, verts[0].y, verts[0].z,
-                    verts[2].x, verts[2].y, verts[2].z,
-                    verts[3].x, verts[3].y, verts[3].z,
+                    verts[2].x, verts[2].y, verts[2].z
                 );
             }
-            // If a face has 3 or more than 4 edges, you'd handle those differently.
+            // If it's a quad (4 verts), triangulate as two triangles
+            else if (verts.length === 4) {
+                positions.push(
+                    // Triangle 1
+                    verts[0].x, verts[0].y, verts[0].z,
+                    verts[1].x, verts[1].y, verts[1].z,
+                    verts[2].x, verts[2].y, verts[2].z,
+                    // Triangle 2
+                    verts[0].x, verts[0].y, verts[0].z,
+                    verts[2].x, verts[2].y, verts[2].z,
+                    verts[3].x, verts[3].y, verts[3].z
+                );
+            }
+            // For polygons with more than 4 edges, you'd handle differently (fan triangulation, etc.)
         }
 
         const geom = new THREE.BufferGeometry();
         const posAttr = new THREE.Float32BufferAttribute(new Float32Array(positions), 3);
         geom.setAttribute('position', posAttr);
         geom.computeVertexNormals();
+
         return geom;
     }
 }

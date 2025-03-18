@@ -23,7 +23,7 @@ class SelectionManagerHEDS {
         });
 
 
-        this.selectionMode = 'EDGE'; // or 'EDGE', 'FACE'
+        this.selectionMode = 'FACE'; // or 'EDGE', 'FACE'
         this.selectedElement = null;   // could be a HEVertex, HEEdge, or HEFace
 
         // A small THREE.Object3D to place our TransformControls at the correct location.
@@ -34,6 +34,7 @@ class SelectionManagerHEDS {
         this.onPointerDown = this.onPointerDown.bind(this);
         Renderer.renderer.domElement.addEventListener('pointerdown', this.onPointerDown, false);
 
+        this.curObj = null;
 
         // move logic
         this.transformControls.addEventListener('objectChange', () => {
@@ -95,9 +96,9 @@ class SelectionManagerHEDS {
 
     // Rebuild geometry from HEMesh and set it on the mesh
     refreshMeshGeometry() {
-        SceneGraphManager.getUnpackedSceneGraphObjects()[0].geometry = SceneGraphManager.getUnpackedSceneGraphMeshes()[0].toBufferGeometry();
+        // SceneGraphManager.getUnpackedSceneGraphObjects()[0].geometry = SceneGraphManager.getUnpackedSceneGraphMeshes()[0].toBufferGeometry();
+        this.curObj.object.geometry = this.curObj.heMesh.toBufferGeometry();
     }
-
 
 
     onPointerDown(event) {
@@ -115,26 +116,28 @@ class SelectionManagerHEDS {
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, Camera.camera);
         // We just intersect the main mesh. Then we figure out the nearest sub-element of the HEDS
-        const intersects = raycaster.intersectObject(SceneGraphManager.getUnpackedSceneGraphObjects()[0]);
+        const intersects = raycaster.intersectObjects(SceneGraphManager.getUnpackedSceneGraphObjects());
         if (intersects.length === 0) {
 
             // No intersection, clear selection
             this.selectedElement = null;
             this.transformControls.detach();
+            this.curObj = null;
             return;
         }
 
         // We have the intersection on the mesh
         const intersect = intersects[0];
+        this.curObj = SceneGraphManager.objects.get(intersect.object.uuid)
 
-        console.log("Алё ", this.selectionMode);
+        console.log("Алё ");
 
         switch (this.selectionMode) {
             case 'VERTEX':
 
 
                 // Find nearest vertex in the face hit, do a naive check among all vertices
-                this.selectedElement = this.getNearestVertex(intersect.point);
+                this.selectedElement = this.getNearestVertex(intersect.point, this.curObj.heMesh.vertices);
                 if (this.selectedElement) {
                     this.transformDummy.position.copy(this.selectedElement.position);
                     this.transformControls.attach(this.transformDummy);
@@ -144,7 +147,7 @@ class SelectionManagerHEDS {
             case 'EDGE':
 
                 // Find nearest edge among all edges.
-                this.selectedElement = this.getNearestEdge(intersect.point);
+                this.selectedElement = this.getNearestEdge(intersect.point, this.curObj.heMesh.edges);
                 if (this.selectedElement) {
                     // Position transform at midpoint of that edge
                     const vA = this.selectedElement.vertex.position;
@@ -156,7 +159,7 @@ class SelectionManagerHEDS {
 
             case 'FACE':
                 // Find face from the intersected triangle  do it by matching face normal or vertex indices
-                this.selectedElement = this.getIntersectedFace(intersect);
+                this.selectedElement = this.getIntersectedFace(intersect, this.curObj.heMesh.faces);
                 if (this.selectedElement) {
                     // Place transform at face center
                     const center = new THREE.Vector3();
@@ -180,12 +183,11 @@ class SelectionManagerHEDS {
     }
 
     // For vertex picking
-    getNearestVertex(point) {
+    getNearestVertex(point, curVerts) {
         let minDist = Infinity;
         let closest = null;
-        console.log(SceneGraphManager.getUnpackedSceneGraphObjects()[0].userData);
 
-        for (let v of SceneGraphManager.getUnpackedSceneGraphMeshes()[0].vertices) {
+        for (let v of curVerts) {
             const dist = v.position.distanceTo(point);
             if (dist < minDist) {
                 minDist = dist;
@@ -196,10 +198,10 @@ class SelectionManagerHEDS {
     }
 
     // For edge picking
-    getNearestEdge(point) {
+    getNearestEdge(point, curEdges) {
         let minDist = Infinity;
         let closest = null;
-        for (let e of SceneGraphManager.getUnpackedSceneGraphMeshes()[0].edges) {
+        for (let e of curEdges) {
             const pA = e.vertex.position;
             const pB = e.next.vertex.position;
             // Distance from point to segment pA->pB
@@ -220,10 +222,10 @@ class SelectionManagerHEDS {
         return proj.distanceTo(pt);
     }
 
-    getIntersectedFace(intersect) {
+    getIntersectedFace(intersect, curFaces) {
         const triIndex = intersect.faceIndex; 
         const faceId = Math.floor(triIndex / 2);
-        return SceneGraphManager.getUnpackedSceneGraphMeshes()[0].faces[faceId] || null;
+        return curFaces[faceId] || null;
     }
 }
 
