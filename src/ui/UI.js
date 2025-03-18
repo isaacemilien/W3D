@@ -7,7 +7,8 @@ class UI {
     constructor() {
         // Temp add object definition, move later
         document.getElementById("add-cube").addEventListener("click", () => {
-            SceneGraphManager.addObject(PrimitiveFactory.createCube());
+            const cube = PrimitiveFactory.createCubeHEDS();
+            SceneGraphManager.addObject(cube.object, cube.heMesh);
         });
 
         document.getElementById("add-sphere").addEventListener("click", () => {

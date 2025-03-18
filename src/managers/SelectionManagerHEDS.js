@@ -140,23 +140,48 @@ class SelectionManagerHEDS {
         const pickedObj = intersect.object;
 
         // Grab the wrapper object that contains { object: THREE.Mesh, heMesh: HEMesh }
+        // Reset lastMatrix when switching objects
+        if (!this.curObj || this.curObj.object.uuid !== pickedObj.uuid) {
+            this.lastMatrix = new THREE.Matrix4().identity();
+        }
+
+        // Grab the wrapper object that contains { object: THREE.Mesh, heMesh: HEMesh }
         this.curObj = SceneGraphManager.objects.get(pickedObj.uuid);
 
 
         switch (this.selectionMode) {
             case 'OBJECT':
                 console.log("Selecting object...");
-                
-                // Compute center of object based on HEDS vertices
+
+                // Reset transformDummy transformations
+                this.transformDummy.position.set(0, 0, 0);
+                this.transformDummy.quaternion.identity();
+                this.transformDummy.scale.set(1, 1, 1);
+                this.transformDummy.matrix.identity();
+                this.transformDummy.updateMatrixWorld(true);
+
+                // Compute center of object in world coordinates
                 const center = new THREE.Vector3();
                 let count = 0;
                 this.curObj.heMesh.vertices.forEach(vertex => {
                     center.add(vertex.position);
                     count++;
                 });
-            
-                center.divideScalar(count); // Get the average center
-                this.transformDummy.position.copy(center); // Move dummy to center
+
+                if (count > 0) center.divideScalar(count); // Get the average center
+
+                // Convert center to world space
+                this.curObj.object.localToWorld(center);
+                this.transformDummy.position.copy(center); // Move dummy to world position
+
+                // Apply correct rotation and scale
+                this.transformDummy.quaternion.copy(this.curObj.object.quaternion);
+                this.transformDummy.scale.copy(this.curObj.object.scale);
+                this.transformDummy.updateMatrixWorld(true);
+
+                // Reset lastMatrix correctly
+                this.lastMatrix = new THREE.Matrix4().copy(this.transformDummy.matrixWorld);
+
                 this.transformControls.attach(this.transformDummy); // Attach TransformControls to the dummy
                 break;
 
@@ -254,10 +279,9 @@ class SelectionManagerHEDS {
     }
 
     updateHEDSFromTransform() {
-        // Compute the difference in transformation
-        const currentMatrix = new THREE.Matrix4();
+        // Compute the difference in transformation (position, rotation, scale)
         this.transformDummy.updateMatrixWorld(true);
-        currentMatrix.copy(this.transformDummy.matrixWorld);
+        const currentMatrix = new THREE.Matrix4().copy(this.transformDummy.matrixWorld);
     
         if (!this.lastMatrix) {
             this.lastMatrix = currentMatrix.clone(); // Store initial transformation
@@ -267,10 +291,39 @@ class SelectionManagerHEDS {
         const deltaMatrix = new THREE.Matrix4();
         deltaMatrix.copy(this.lastMatrix).invert().multiply(currentMatrix); // Compute relative transformation
     
-        // Apply delta transformation to all HEDS vertices
+        // Extract transformation components
+        const deltaPosition = new THREE.Vector3();
+        const deltaQuaternion = new THREE.Quaternion();
+        const deltaScale = new THREE.Vector3();
+        deltaMatrix.decompose(deltaPosition, deltaQuaternion, deltaScale);
+    
+        // Compute the world center of the object **before transformation**
+        const centerWorld = new THREE.Vector3();
+        this.transformDummy.getWorldPosition(centerWorld); // Use transformDummy as the pivot
+    
+        // Apply transformations to all HEDS vertices
         this.curObj.heMesh.vertices.forEach(vertex => {
             const v = vertex.position.clone();
-            v.applyMatrix4(deltaMatrix); // Apply full transformation (position, rotation, scaling)
+    
+            // Convert vertex to world space
+            this.curObj.object.localToWorld(v);
+    
+            // Move vertex relative to pivot
+            v.sub(centerWorld);
+    
+            // Apply rotation
+            v.applyQuaternion(deltaQuaternion);
+    
+            // Apply scaling (ensure it's uniform across all axes)
+            v.multiply(deltaScale);
+    
+            // **Apply translation (fixing movement issue)**
+            v.add(centerWorld); // Move vertex back to pivot
+            v.add(deltaPosition); // Move vertex by the translated offset
+    
+            // Convert vertex back to local space
+            this.curObj.object.worldToLocal(v);
+    
             vertex.position.copy(v);
         });
     

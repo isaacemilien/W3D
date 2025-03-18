@@ -6,7 +6,7 @@ class SceneGraphManager {
         this.objects = new Map();
     }
 
-    addObject(object, parent = null, heMesh = null) {
+    addObject(object, heMesh, parent = null) {
         if (parent) {
             parent.add(object);
         } else {

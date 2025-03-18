@@ -16,20 +16,15 @@ import SelectionManagerHEDS from './managers/SelectionManagerHEDS';
 
 // Add grid scene, eventually place in seperate class with more advanced grid logic
 const gridHelper = new THREE.GridHelper(10, 10, 0x888888, 0x444444);
-Scene.scene.add(gridHelper);
+Scene.addObject(gridHelper);
 
 
-
+const cube = PrimitiveFactory.createCubeHEDS();
+SceneGraphManager.addObject(cube.object, cube.heMesh);
+// const cube2 = PrimitiveFactory.createCubeHEDS();
+// SceneGraphManager.addObject(cube2.object, cube2.heMesh);
 
 // Create the HEMesh sphere
-const myHEMesh = new HEMesh();
-myHEMesh.createBox();
-const sphereGeom = myHEMesh.toBufferGeometry();
-const material = new THREE.MeshNormalMaterial();
-const sphereMesh = new THREE.Mesh(sphereGeom, material);
-Scene.scene.add(sphereMesh);
-SceneGraphManager.addObject(sphereMesh, null, myHEMesh);
-
 // // Create the HEMesh sphere
 // const myHEMesh2 = new HEMesh();
 // myHEMesh2.createBox();

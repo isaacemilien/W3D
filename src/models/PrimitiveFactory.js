@@ -1,7 +1,20 @@
 import * as THREE from 'three';
 import Scene from '../core/Scene';
+import HEMesh from './HEMesh';
 
 class PrimitiveFactory {
+
+    static createCubeHEDS(){
+        const heMesh = new HEMesh();
+        heMesh.createBox();
+        const sphereGeom = heMesh.toBufferGeometry();
+        const material = new THREE.MeshNormalMaterial();
+        const object = new THREE.Mesh(sphereGeom, material);
+        object.userData.name  = "pCube1";
+
+        return {object, heMesh}
+    }
+
     static createCube(size = 1) {
         const geometry = new THREE.BoxGeometry(size, size, size);
         const material = new THREE.MeshStandardMaterial({ color: 0x0077ff });
