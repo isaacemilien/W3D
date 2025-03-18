@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import SelectionManager from '../managers/SelectionManager';
+import SelectionManager from '../managers/SelectionManagerHEDS';
 import SceneGraphManager from '../managers/SceneGraphManager';
 import PrimitiveFactory from '../models/PrimitiveFactory';
 
@@ -25,6 +25,28 @@ class UI {
         document.getElementById("scale").addEventListener("click", () => {
             SelectionManager.transformControls.setMode("scale")
         });
+
+
+        document.getElementById("object-mode").addEventListener("click", () => {
+            SelectionManager.selectionMode = 'OBJECT';
+            SelectionManager.transformControls.detach();
+            SelectionManager.selectedElement = null;
+        });
+        document.getElementById("vertex-mode").addEventListener("click", () => {
+            SelectionManager.selectionMode = 'VERTEX';
+            SelectionManager.transformControls.detach();
+            SelectionManager.selectedElement = null;
+        });
+        document.getElementById("edge-mode").addEventListener("click", () => {
+            SelectionManager.selectionMode = 'EDGE';
+            SelectionManager.transformControls.detach();
+            SelectionManager.selectedElement = null;
+        });
+        document.getElementById("face-mode").addEventListener("click", () => {
+            SelectionManager.selectionMode = 'FACE';
+            SelectionManager.transformControls.detach();
+            SelectionManager.selectedElement = null;
+        });
     }
 
 
@@ -36,7 +58,7 @@ class UI {
             propertiesPanel.innerHTML = "<p>No object selected</p>";
             return;
         }
-    
+
         const mesh = object.userData.meshReference;
         propertiesPanel.innerHTML = `
           <label>
@@ -78,18 +100,18 @@ class UI {
           <h3>Pivot Point</h3>
 
         `;
-    //   <label>
-    //     Pivot X:
-    //     <input type="number" id="pivot-x" value="${-mesh.position.x}" step="0.1">
-    //   </label>
-    //   <label>
-    //     Pivot Y:
-    //     <input type="number" id="pivot-y" value="${-mesh.position.y}" step="0.1">
-    //   </label>
-    //   <label>
-    //     Pivot Z:
-    //     <input type="number" id="pivot-z" value="${-mesh.position.z}" step="0.1">
-    //   </label>
+        //   <label>
+        //     Pivot X:
+        //     <input type="number" id="pivot-x" value="${-mesh.position.x}" step="0.1">
+        //   </label>
+        //   <label>
+        //     Pivot Y:
+        //     <input type="number" id="pivot-y" value="${-mesh.position.y}" step="0.1">
+        //   </label>
+        //   <label>
+        //     Pivot Z:
+        //     <input type="number" id="pivot-z" value="${-mesh.position.z}" step="0.1">
+        //   </label>
 
 
         document.getElementById("position-x").addEventListener("input", (e) => {
@@ -119,7 +141,7 @@ class UI {
         document.getElementById("scale-z").addEventListener("input", (e) => {
             object.scale.z = parseFloat(e.target.value);
         });
-    
+
         // document.getElementById("pivot-x").addEventListener("input", (e) => {
         //     updatePivotPoint(object, parseFloat(e.target.value), mesh.position.y, mesh.position.z);
         // });

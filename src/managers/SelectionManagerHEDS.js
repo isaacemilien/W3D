@@ -20,10 +20,13 @@ class SelectionManagerHEDS {
         // Toggle orbit controls on transform control move
         this.transformControls.addEventListener('dragging-changed', function (event) {
             Camera.controls.enabled = !event.value;
+            if (!event.value) {
+                this.lastPosition = null; // Reset stored position when dragging stops
+            }
         });
 
 
-        this.selectionMode = 'FACE'; // or 'EDGE', 'FACE'
+        this.selectionMode = 'OBJECT'; // or 'EDGE', 'FACE'
         this.selectedElement = null;   // could be a HEVertex, HEEdge, or HEFace
 
         // A small THREE.Object3D to place our TransformControls at the correct location.
@@ -38,7 +41,14 @@ class SelectionManagerHEDS {
 
         // move logic
         this.transformControls.addEventListener('objectChange', () => {
-            console.log("раааааннннннииииинг");
+            // console.log("Мовинг транс ", this.curObj.heMesh.vertices[0].position);
+
+            if (this.curObj != null && this.selectionMode == "OBJECT") {
+                this.updateHEDSFromTransform();
+                console.log("sdfsfsdfsfds");
+
+            }
+
 
 
 
@@ -91,9 +101,6 @@ class SelectionManagerHEDS {
 
     }
 
-
-
-
     // Rebuild geometry from HEMesh and set it on the mesh
     refreshMeshGeometry() {
         // SceneGraphManager.getUnpackedSceneGraphObjects()[0].geometry = SceneGraphManager.getUnpackedSceneGraphMeshes()[0].toBufferGeometry();
@@ -104,7 +111,7 @@ class SelectionManagerHEDS {
     onPointerDown(event) {
         event.preventDefault();
 
-
+        console.log("длыловфждывоа");
 
         // Normalized device coordinates
         const rect = Renderer.renderer.domElement.getBoundingClientRect();
@@ -123,19 +130,37 @@ class SelectionManagerHEDS {
             this.selectedElement = null;
             this.transformControls.detach();
             this.curObj = null;
+            this.selectedObject = null;
+
             return;
         }
 
-        // We have the intersection on the mesh
+        // We have an intersection
         const intersect = intersects[0];
-        this.curObj = SceneGraphManager.objects.get(intersect.object.uuid)
+        const pickedObj = intersect.object;
 
-        console.log("Алё ");
+        // Grab the wrapper object that contains { object: THREE.Mesh, heMesh: HEMesh }
+        this.curObj = SceneGraphManager.objects.get(pickedObj.uuid);
+
 
         switch (this.selectionMode) {
+            case 'OBJECT':
+                console.log("Selecting object...");
+                
+                // Compute center of object based on HEDS vertices
+                const center = new THREE.Vector3();
+                let count = 0;
+                this.curObj.heMesh.vertices.forEach(vertex => {
+                    center.add(vertex.position);
+                    count++;
+                });
+            
+                center.divideScalar(count); // Get the average center
+                this.transformDummy.position.copy(center); // Move dummy to center
+                this.transformControls.attach(this.transformDummy); // Attach TransformControls to the dummy
+                break;
+
             case 'VERTEX':
-
-
                 // Find nearest vertex in the face hit, do a naive check among all vertices
                 this.selectedElement = this.getNearestVertex(intersect.point, this.curObj.heMesh.vertices);
                 if (this.selectedElement) {
@@ -223,9 +248,37 @@ class SelectionManagerHEDS {
     }
 
     getIntersectedFace(intersect, curFaces) {
-        const triIndex = intersect.faceIndex; 
+        const triIndex = intersect.faceIndex;
         const faceId = Math.floor(triIndex / 2);
         return curFaces[faceId] || null;
+    }
+
+    updateHEDSFromTransform() {
+        // Compute the difference in transformation
+        const currentMatrix = new THREE.Matrix4();
+        this.transformDummy.updateMatrixWorld(true);
+        currentMatrix.copy(this.transformDummy.matrixWorld);
+    
+        if (!this.lastMatrix) {
+            this.lastMatrix = currentMatrix.clone(); // Store initial transformation
+        }
+    
+        // Compute the delta transformation
+        const deltaMatrix = new THREE.Matrix4();
+        deltaMatrix.copy(this.lastMatrix).invert().multiply(currentMatrix); // Compute relative transformation
+    
+        // Apply delta transformation to all HEDS vertices
+        this.curObj.heMesh.vertices.forEach(vertex => {
+            const v = vertex.position.clone();
+            v.applyMatrix4(deltaMatrix); // Apply full transformation (position, rotation, scaling)
+            vertex.position.copy(v);
+        });
+    
+        // Store the last transformation for the next update
+        this.lastMatrix.copy(currentMatrix);
+    
+        // Update Three.js mesh geometry to reflect the new HEDS positions
+        this.refreshMeshGeometry();
     }
 }
 

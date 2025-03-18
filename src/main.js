@@ -30,13 +30,13 @@ const sphereMesh = new THREE.Mesh(sphereGeom, material);
 Scene.scene.add(sphereMesh);
 SceneGraphManager.addObject(sphereMesh, null, myHEMesh);
 
-// Create the HEMesh sphere
-const myHEMesh2 = new HEMesh();
-myHEMesh2.createBox();
-const boxGeom = myHEMesh2.toBufferGeometry();
-const boxMesh = new THREE.Mesh(boxGeom, material);
-Scene.scene.add(boxMesh);
-SceneGraphManager.addObject(boxMesh, null, myHEMesh2);
+// // Create the HEMesh sphere
+// const myHEMesh2 = new HEMesh();
+// myHEMesh2.createBox();
+// const boxGeom = myHEMesh2.toBufferGeometry();
+// const boxMesh = new THREE.Mesh(boxGeom, material);
+// Scene.scene.add(boxMesh);
+// SceneGraphManager.addObject(boxMesh, null, myHEMesh2);
 
 
 // Update loop  
