@@ -89,3 +89,16 @@ body {
 /* #outliner-content ul li button::selection {
   background-color: #6484a0;
 } */
+
+
+
+
+
+#properties-container {
+  position: absolute;
+  background-color: #3a3a3a;
+  width: 15%;
+  height: 100%;
+  top: 10%;
+  right: 0;
+}

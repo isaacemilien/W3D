@@ -4,6 +4,7 @@ import Camera from '../core/Camera';
 import Renderer from '../core/Renderer';
 import SceneGraphManager from './SceneGraphManager';
 import { TransformControls } from 'three/examples/jsm/Addons.js';
+import UI from '../ui/ui';
 
 class SelectionManager {
     constructor() {
@@ -65,9 +66,12 @@ class SelectionManager {
         unpackedSceneGraphObjects.forEach((o) => {
             if (o === obj) {
                 this.attachTransformControls(o);
-                
+                UI.updateObjectPropertiesPanel(o);
                 // o.userData.meshReference.material.color.set("yellow");
             } else {
+                // Later need clear panel on click away
+                // UI.updateObjectPropertiesPanel(null);
+                
                 // o.userData.meshReference.material.color.set(o.userData.originalColor);
             }
         });

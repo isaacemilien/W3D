@@ -6,30 +6,12 @@ import Lighting from './core/Lighting';
 import PrimitiveFactory from './models/PrimitiveFactory';
 import SelectionManager from './managers/SelectionManager';
 import SceneGraphManager from './managers/SceneGraphManager';
+import UI from './ui/ui';
 
 SceneGraphManager.addObject(PrimitiveFactory.createCube());
 SceneGraphManager.addObject(PrimitiveFactory.createSphere());
 
-// Temp add object definition, move later
-document.getElementById("add-cube").addEventListener("click", () => {
-    SceneGraphManager.addObject(PrimitiveFactory.createCube());
-});
-
-document.getElementById("add-sphere").addEventListener("click", () => {
-    SceneGraphManager.addObject(PrimitiveFactory.createSphere());
-});
-
-document.getElementById("move").addEventListener("click", () => {
-    SelectionManager.transformControls.setMode("translate")
-});
-
-document.getElementById("rot").addEventListener("click", () => {
-    SelectionManager.transformControls.setMode("rotate")
-});
-
-document.getElementById("scale").addEventListener("click", () => {
-    SelectionManager.transformControls.setMode("scale")
-});
+UI.updateObjectPropertiesPanel(null);
 
 // Update loop
 function animate() {
