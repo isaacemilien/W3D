@@ -282,56 +282,108 @@ class SelectionManagerHEDS {
         // Compute the difference in transformation (position, rotation, scale)
         this.transformDummy.updateMatrixWorld(true);
         const currentMatrix = new THREE.Matrix4().copy(this.transformDummy.matrixWorld);
-    
+
         if (!this.lastMatrix) {
             this.lastMatrix = currentMatrix.clone(); // Store initial transformation
         }
-    
+
         // Compute the delta transformation
         const deltaMatrix = new THREE.Matrix4();
         deltaMatrix.copy(this.lastMatrix).invert().multiply(currentMatrix); // Compute relative transformation
-    
+
         // Extract transformation components
         const deltaPosition = new THREE.Vector3();
         const deltaQuaternion = new THREE.Quaternion();
         const deltaScale = new THREE.Vector3();
         deltaMatrix.decompose(deltaPosition, deltaQuaternion, deltaScale);
-    
+
         // Compute the world center of the object **before transformation**
         const centerWorld = new THREE.Vector3();
         this.transformDummy.getWorldPosition(centerWorld); // Use transformDummy as the pivot
-    
+
         // Apply transformations to all HEDS vertices
         this.curObj.heMesh.vertices.forEach(vertex => {
             const v = vertex.position.clone();
-    
+
             // Convert vertex to world space
             this.curObj.object.localToWorld(v);
-    
+
             // Move vertex relative to pivot
             v.sub(centerWorld);
-    
+
             // Apply rotation
             v.applyQuaternion(deltaQuaternion);
-    
+
             // Apply scaling (ensure it's uniform across all axes)
             v.multiply(deltaScale);
-    
+
             // **Apply translation (fixing movement issue)**
             v.add(centerWorld); // Move vertex back to pivot
             v.add(deltaPosition); // Move vertex by the translated offset
-    
+
             // Convert vertex back to local space
             this.curObj.object.worldToLocal(v);
-    
+
             vertex.position.copy(v);
         });
-    
+
         // Store the last transformation for the next update
         this.lastMatrix.copy(currentMatrix);
-    
+
         // Update Three.js mesh geometry to reflect the new HEDS positions
         this.refreshMeshGeometry();
+    }
+
+    // selection function call with object as parameter ? select object in Object mode
+    // Later will integrate appropriatly with rest of class
+    selectObject(object) {
+        if (!object) return;
+
+        console.log("Selecting object programmatically...");
+
+        // Reset transformDummy transformations
+        this.transformDummy.position.set(0, 0, 0);
+        this.transformDummy.quaternion.identity();
+        this.transformDummy.scale.set(1, 1, 1);
+        this.transformDummy.matrix.identity();
+        this.transformDummy.updateMatrixWorld(true);
+
+        // Retrieve object from SceneGraphManager
+        this.curObj = SceneGraphManager.objects.get(object.uuid);
+        if (!this.curObj) {
+            console.error("Object not found in SceneGraphManager.");
+            return;
+        }
+
+        UI.updateObjectPropertiesPanel(object);
+
+        // Reset lastMatrix for correct transformations
+        this.lastMatrix = new THREE.Matrix4().identity();
+
+        // Compute center of object in world coordinates
+        const center = new THREE.Vector3();
+        let count = 0;
+        this.curObj.heMesh.vertices.forEach(vertex => {
+            center.add(vertex.position);
+            count++;
+        });
+
+        if (count > 0) center.divideScalar(count); // Get the average center
+
+        // Convert center to world space
+        this.curObj.object.localToWorld(center);
+        this.transformDummy.position.copy(center); // Move dummy to world position
+
+        // Apply correct rotation and scale
+        this.transformDummy.quaternion.copy(this.curObj.object.quaternion);
+        this.transformDummy.scale.copy(this.curObj.object.scale);
+        this.transformDummy.updateMatrixWorld(true);
+
+        // Store lastMatrix correctly
+        this.lastMatrix = new THREE.Matrix4().copy(this.transformDummy.matrixWorld);
+
+        // Attach TransformControls to the dummy
+        this.transformControls.attach(this.transformDummy);
     }
 }
 

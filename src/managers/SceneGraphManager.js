@@ -1,5 +1,5 @@
 import Scene from '../core/Scene';
-import SelectionManager from './SelectionManager'
+import SelectionManagerHEDS from './SelectionManagerHEDS'
 
 class SceneGraphManager {
     constructor() {
@@ -48,7 +48,7 @@ class SceneGraphManager {
                 // stopPropogation to stop onclick event conflicts that raycaster uses
                 event.stopPropagation()
                 console.log("здарова");
-                SelectionManager.selectObject(obj);
+                SelectionManagerHEDS.selectObject(obj);
             }
             sceneGraph.appendChild(li);
         });

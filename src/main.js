@@ -21,18 +21,8 @@ Scene.addObject(gridHelper);
 
 const cube = PrimitiveFactory.createCubeHEDS();
 SceneGraphManager.addObject(cube.object, cube.heMesh);
-// const cube2 = PrimitiveFactory.createCubeHEDS();
-// SceneGraphManager.addObject(cube2.object, cube2.heMesh);
 
-// Create the HEMesh sphere
-// // Create the HEMesh sphere
-// const myHEMesh2 = new HEMesh();
-// myHEMesh2.createBox();
-// const boxGeom = myHEMesh2.toBufferGeometry();
-// const boxMesh = new THREE.Mesh(boxGeom, material);
-// Scene.scene.add(boxMesh);
-// SceneGraphManager.addObject(boxMesh, null, myHEMesh2);
-
+// SelectionManagerHEDS.selectObject(cube.object);
 
 // Update loop  
 function animate() {
