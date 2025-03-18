@@ -11,7 +11,9 @@ import UI from './ui/ui';
 SceneGraphManager.addObject(PrimitiveFactory.createCube());
 SceneGraphManager.addObject(PrimitiveFactory.createSphere());
 
-UI.updateObjectPropertiesPanel(null);
+// Add grid scene, eventually place in seperate class with more advanced grid logic
+const gridHelper = new THREE.GridHelper(10, 10, 0x888888, 0x444444);
+Scene.scene.add(gridHelper);
 
 // Update loop
 function animate() {

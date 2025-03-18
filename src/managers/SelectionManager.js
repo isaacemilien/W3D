@@ -26,6 +26,26 @@ class SelectionManager {
         this.transformControls.addEventListener('dragging-changed', function (event) {
             Camera.controls.enabled = !event.value;
         });
+
+
+
+        // Enable snapping only while holding "X", find better location for this later
+        window.addEventListener("keydown", (event) => {
+            if (event.key.toLowerCase() === "x") {
+                SelectionManager.transformControls.setTranslationSnap(1); // 1-unit translate
+                SelectionManager.transformControls.setRotationSnap(THREE.MathUtils.degToRad(15)); // 15-degree rotate
+                SelectionManager.transformControls.setScaleSnap(0.1); // 0.1 scale increments
+            }
+        });
+        
+        window.addEventListener("keyup", (event) => {
+            if (event.key.toLowerCase() === "x") {
+                // Disable snapping
+                SelectionManager.transformControls.setTranslationSnap(null);
+                SelectionManager.transformControls.setRotationSnap(null);
+                SelectionManager.transformControls.setScaleSnap(null);
+            }
+        });
     }
 
     onMouseClick(event) {
