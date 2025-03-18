@@ -12,15 +12,17 @@ class SelectionManager {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
 
-        this.selectionMode = {
-            OBJECT: "object",
-            VERTEX: "vertex"
-        }
+        // this.selectionMode = {
+        //     OBJECT: "object",
+        //     VERTEX: "vertex"
+        // }
 
         this.transformControls = new TransformControls(Camera.camera, Renderer.renderer.domElement);
-        Scene.scene.add(this.transformControls.getHelper());
+        // Temp comment while heds implementation
+        // Scene.scene.add(this.transformControls.getHelper());
 
-        window.addEventListener('click', (event) => this.onMouseClick(event));
+        // Temp comment while heds implementation
+        // window.addEventListener('click', (event) => this.onMouseClick(event));
 
         // Toggle orbit controls on transform control move
         this.transformControls.addEventListener('dragging-changed', function (event) {
@@ -49,6 +51,8 @@ class SelectionManager {
     }
 
     onMouseClick(event) {
+        console.log("I shouldn't be runngin");
+        
         const rect = Renderer.renderer.domElement.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;

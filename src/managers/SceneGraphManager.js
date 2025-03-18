@@ -6,13 +6,13 @@ class SceneGraphManager {
         this.objects = new Map();
     }
 
-    addObject(object, parent = null) {
+    addObject(object, parent = null, heMesh = null) {
         if (parent) {
             parent.add(object);
         } else {
             Scene.addObject(object);
         }
-        this.objects.set(object.uuid, { object, parent });
+        this.objects.set(object.uuid, { object, parent, heMesh });
         this.updateSceneGraph();
     }
 
@@ -52,6 +52,14 @@ class SceneGraphManager {
             }
             sceneGraph.appendChild(li);
         });
+    }
+
+    // temp method to unpack scene graph objects, not yet implemented in code
+    getUnpackedSceneGraphObjects(){
+        return Array.from(this.objects.values()).map(value => value.object);
+    }
+    getUnpackedSceneGraphMeshes(){
+        return Array.from(this.objects.values()).map(value => value.heMesh);
     }
 }
 
