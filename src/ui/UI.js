@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import SelectionManager from '../managers/SelectionManagerHEDS';
+import SelectionManagerHEDS from '../managers/SelectionManagerHEDS';
 import SceneGraphManager from '../managers/SceneGraphManager';
 import PrimitiveFactory from '../models/PrimitiveFactory';
 
@@ -16,37 +16,37 @@ class UI {
         });
 
         document.getElementById("move").addEventListener("click", () => {
-            SelectionManager.transformControls.setMode("translate")
+            SelectionManagerHEDS.transformControls.setMode("translate")
         });
 
         document.getElementById("rot").addEventListener("click", () => {
-            SelectionManager.transformControls.setMode("rotate")
+            SelectionManagerHEDS.transformControls.setMode("rotate")
         });
 
         document.getElementById("scale").addEventListener("click", () => {
-            SelectionManager.transformControls.setMode("scale")
+            SelectionManagerHEDS.transformControls.setMode("scale")
         });
 
 
         document.getElementById("object-mode").addEventListener("click", () => {
-            SelectionManager.selectionMode = 'OBJECT';
-            SelectionManager.transformControls.detach();
-            SelectionManager.selectedElement = null;
+            SelectionManagerHEDS.selectionMode = 'OBJECT';
+            SelectionManagerHEDS.transformControls.detach();
+            SelectionManagerHEDS.selectedElement = null;
         });
         document.getElementById("vertex-mode").addEventListener("click", () => {
-            SelectionManager.selectionMode = 'VERTEX';
-            SelectionManager.transformControls.detach();
-            SelectionManager.selectedElement = null;
+            SelectionManagerHEDS.selectionMode = 'VERTEX';
+            SelectionManagerHEDS.transformControls.detach();
+            SelectionManagerHEDS.selectedElement = null;
         });
         document.getElementById("edge-mode").addEventListener("click", () => {
-            SelectionManager.selectionMode = 'EDGE';
-            SelectionManager.transformControls.detach();
-            SelectionManager.selectedElement = null;
+            SelectionManagerHEDS.selectionMode = 'EDGE';
+            SelectionManagerHEDS.transformControls.detach();
+            SelectionManagerHEDS.selectedElement = null;
         });
         document.getElementById("face-mode").addEventListener("click", () => {
-            SelectionManager.selectionMode = 'FACE';
-            SelectionManager.transformControls.detach();
-            SelectionManager.selectedElement = null;
+            SelectionManagerHEDS.selectionMode = 'FACE';
+            SelectionManagerHEDS.transformControls.detach();
+            SelectionManagerHEDS.selectedElement = null;
         });
     }
 
