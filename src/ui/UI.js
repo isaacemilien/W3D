@@ -48,7 +48,37 @@ class UI {
             SelectionManagerHEDS.transformControls.detach();
             SelectionManagerHEDS.selectedElement = null;
         });
+
+        // Add this to your main keyboard event handler
+        document.addEventListener('keydown', (event) => {
+            // Other key handlers...
+
+            // Handle extrusion with 'E' key
+            if (event.key === 'e' && !event.ctrlKey && !event.altKey) {
+                console.log("slkjfslk;jf;skldjfa;ksdjfa;oiolsdfjk");
+                
+                SelectionManagerHEDS.handleExtrusion(event);
+            }
+        });
     }
+    createExtrusionButton() {
+        const extrudeButton = document.createElement('button');
+        extrudeButton.textContent = 'Extrude Face';
+        extrudeButton.addEventListener('click', () => {
+            const distanceInput = prompt('Enter extrusion distance:', '1.0');
+            const scaleInput = prompt('Enter scale factor:', '1.0');
+
+            const distance = parseFloat(distanceInput) || 1.0;
+            const scale = parseFloat(scaleInput) || 1.0;
+
+            // Call the extrusion method
+            SelectionManagerHEDS.extrudeFace(distance, scale);
+        });
+
+        // Add the button to your UI container
+        this.toolsContainer.appendChild(extrudeButton);
+    }
+
 
 
 
@@ -153,6 +183,9 @@ class UI {
             SelectionManagerHEDS.updateHEDSFromTransform();
         });
     }
+
+
+
 }
 
 export default new UI();

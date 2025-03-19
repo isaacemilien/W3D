@@ -385,6 +385,130 @@ class SelectionManagerHEDS {
         // Attach TransformControls to the dummy
         this.transformControls.attach(this.transformDummy);
     }
+
+
+
+    extrudeFace(distance = 1.0, scale = 1.0) {
+        if (!this.selectedElement || this.selectionMode !== 'FACE') {
+            console.warn("No face selected for extrusion.");
+            return;
+        }
+
+        const face = this.selectedElement;
+        const heMesh = this.curObj.heMesh;
+
+        // Calculate face normal
+        const faceNormal = this.calculateFaceNormal(face);
+
+        // Store original vertices
+        const originalVertices = [];
+        const newVertices = [];
+
+        // Create a map to track original vertices to their extruded counterparts
+        const vertexMap = new Map();
+
+        // Get face center for scaling
+        const faceCenter = this.calculateFaceCenter(face);
+
+        let startEdge = face.edge;
+        let currentEdge = startEdge;
+        do {
+            originalVertices.push(currentEdge.vertex);
+            currentEdge = currentEdge.next;
+        } while (currentEdge !== startEdge);
+
+        // Second pass: create new vertices
+        for (const vertex of originalVertices) {
+            // Calculate direction vector for scaling (from center to vertex)
+            const directionVector = new THREE.Vector3().subVectors(vertex.position, faceCenter);
+
+            // Create new vertex position:
+            const newPosition = new THREE.Vector3()
+                .copy(faceCenter)
+                .add(directionVector.multiplyScalar(scale))
+                .add(faceNormal.clone().multiplyScalar(distance));
+
+            // Create new vertex
+            const newVertex = heMesh.createVertex(newPosition.x, newPosition.y, newPosition.z);
+            newVertices.push(newVertex);
+            vertexMap.set(vertex, newVertex);
+        }
+
+        // Create new faces for the sides of the extrusion
+        for (let i = 0; i < originalVertices.length; i++) {
+            const v1 = originalVertices[i];
+            const v2 = originalVertices[(i + 1) % originalVertices.length];
+            const v3 = vertexMap.get(v2);
+            const v4 = vertexMap.get(v1);
+
+            // Create new quad face
+            heMesh.createFace([v1, v2, v3, v4]);
+        }
+
+        // Create the extruded face with new vertices
+        heMesh.createFace(newVertices);
+
+        // Remove the original face
+        heMesh.removeFace(face);
+
+        // Update the mesh geometry
+        this.refreshMeshGeometry();
+
+        // Clear selection
+        this.selectedElement = null;
+        this.transformControls.detach();
+    }
+
+    // Helper method to calculate face normal
+    calculateFaceNormal(face) {
+        const normal = new THREE.Vector3();
+
+        // Use the first three vertices to calculate normal
+        let edge = face.edge;
+        const v1 = edge.vertex.position;
+        edge = edge.next;
+        const v2 = edge.vertex.position;
+        edge = edge.next;
+        const v3 = edge.vertex.position;
+
+        // Calculate two edges
+        const edge1 = new THREE.Vector3().subVectors(v2, v1);
+        const edge2 = new THREE.Vector3().subVectors(v3, v1);
+
+        // Cross product to get normal
+        normal.crossVectors(edge1, edge2).normalize();
+
+        return normal;
+    }
+
+    // Helper method to calculate face center
+    calculateFaceCenter(face) {
+        const center = new THREE.Vector3();
+        let count = 0;
+
+        let startEdge = face.edge;
+        let currentEdge = startEdge;
+        do {
+            center.add(currentEdge.vertex.position);
+            count++;
+            currentEdge = currentEdge.next;
+        } while (currentEdge !== startEdge);
+
+        if (count > 0) {
+            center.divideScalar(count);
+        }
+
+        return center;
+    }
+
+    // Add this method to handle keypresses for extrusion
+    handleExtrusion(event) {
+        // 'E' key for extrusion
+        if (event.key === 'e' && this.selectionMode === 'FACE' && this.selectedElement) {
+            // Default extrusion distance and scale
+            this.extrudeFace(1.0, 1.0);
+        }
+    }
 }
 
 export default new SelectionManagerHEDS();

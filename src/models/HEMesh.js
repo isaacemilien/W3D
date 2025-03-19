@@ -227,17 +227,31 @@ class HEMesh {
 
     toBufferGeometry() {
         const positions = [];
-
+        const normals = [];
+    
         for (let face of this.faces) {
             const verts = [];
             let startEdge = face.edge;
             let current = startEdge;
-            // Gather all vertices for this face (e.g., 3 for a triangle, 4 for a quad)
+            
+            // Gather all vertices for this face
             do {
                 verts.push(current.vertex.position);
                 current = current.next;
             } while (current !== startEdge);
-
+    
+            // Calculate face normal
+            const normal = new THREE.Vector3();
+            if (verts.length >= 3) {
+                const v0 = verts[0];
+                const v1 = verts[1];
+                const v2 = verts[2];
+                
+                const edge1 = new THREE.Vector3().subVectors(v1, v0);
+                const edge2 = new THREE.Vector3().subVectors(v2, v0);
+                normal.crossVectors(edge1, edge2).normalize();
+            }
+    
             // If it's a triangle (3 verts)
             if (verts.length === 3) {
                 positions.push(
@@ -245,6 +259,11 @@ class HEMesh {
                     verts[1].x, verts[1].y, verts[1].z,
                     verts[2].x, verts[2].y, verts[2].z
                 );
+                
+                // Add normal for each vertex
+                for (let i = 0; i < 3; i++) {
+                    normals.push(normal.x, normal.y, normal.z);
+                }
             }
             // If it's a quad (4 verts), triangulate as two triangles
             else if (verts.length === 4) {
@@ -258,17 +277,164 @@ class HEMesh {
                     verts[2].x, verts[2].y, verts[2].z,
                     verts[3].x, verts[3].y, verts[3].z
                 );
+                
+                // Use the same normal for all vertices in the quad
+                for (let i = 0; i < 6; i++) {  // 6 vertices (2 triangles)
+                    normals.push(normal.x, normal.y, normal.z);
+                }
             }
-            // For polygons with more than 4 edges, you'd handle differently (fan triangulation, etc.)
         }
-
+    
         const geom = new THREE.BufferGeometry();
-        const posAttr = new THREE.Float32BufferAttribute(new Float32Array(positions), 3);
-        geom.setAttribute('position', posAttr);
-        geom.computeVertexNormals();
-
+        geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        
+        // Don't compute vertex normals - we're using face normals
+        // geom.computeVertexNormals();
+    
         return geom;
     }
+
+
+    // Add these methods to your HEMesh class if they don't exist already
+
+    // Method to create a new vertex
+    createVertex(x, y, z) {
+        const vertex = {
+            position: new THREE.Vector3(x, y, z),
+            edge: null,
+            id: this.vertices.length
+        };
+        this.vertices.push(vertex);
+        return vertex;
+    }
+
+    // Method to create a face from an array of vertices
+    createFace(vertices) {
+        if (vertices.length < 3) {
+            console.error("Cannot create face with less than 3 vertices");
+            return null;
+        }
+
+        // Create a new face
+        const face = {
+            edge: null,
+            id: this.faces.length
+        };
+        this.faces.push(face);
+
+        // Create half-edges for the face
+        const edges = [];
+        for (let i = 0; i < vertices.length; i++) {
+            const edge = {
+                vertex: vertices[i],
+                face: face,
+                next: null,
+                prev: null,
+                twin: null,
+                id: this.edges.length
+            };
+            this.edges.push(edge);
+            edges.push(edge);
+
+            // Set vertex->edge reference
+            vertices[i].edge = edge;
+        }
+
+        // Connect the edges
+        for (let i = 0; i < edges.length; i++) {
+            const nextIndex = (i + 1) % edges.length;
+            const prevIndex = (i - 1 + edges.length) % edges.length;
+
+            edges[i].next = edges[nextIndex];
+            edges[i].prev = edges[prevIndex];
+        }
+
+        // Set face->edge reference
+        face.edge = edges[0];
+
+        // Try to connect twins
+        this.connectTwins();
+
+        return face;
+    }
+
+    // Method to remove a face
+    removeFace(face) {
+        // First, find and remove all half-edges associated with this face
+        const edgesToRemove = [];
+        let currentEdge = face.edge;
+        const startEdge = currentEdge;
+
+        do {
+            edgesToRemove.push(currentEdge);
+
+            // If this edge has a twin, update the twin's reference
+            if (currentEdge.twin) {
+                currentEdge.twin.twin = null;
+            }
+
+            currentEdge = currentEdge.next;
+        } while (currentEdge !== startEdge);
+
+        // Remove the edges from the edges array
+        for (const edge of edgesToRemove) {
+            const index = this.edges.indexOf(edge);
+            if (index !== -1) {
+                this.edges.splice(index, 1);
+            }
+        }
+
+        // Remove the face from the faces array
+        const faceIndex = this.faces.indexOf(face);
+        if (faceIndex !== -1) {
+            this.faces.splice(faceIndex, 1);
+        }
+
+        // Update IDs for remaining faces and edges
+        this.updateElementIds();
+    }
+
+    // Method to connect twin edges
+    connectTwins() {
+        // This is a simple implementation - you might want to use a more efficient algorithm
+        for (let i = 0; i < this.edges.length; i++) {
+            const edge1 = this.edges[i];
+            if (edge1.twin) continue; // Already has a twin
+
+            for (let j = i + 1; j < this.edges.length; j++) {
+                const edge2 = this.edges[j];
+                if (edge2.twin) continue; // Already has a twin
+
+                // Check if these edges connect the same vertices in opposite directions
+                if (edge1.vertex === edge2.next.vertex && edge2.vertex === edge1.next.vertex) {
+                    edge1.twin = edge2;
+                    edge2.twin = edge1;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Method to update element IDs after removal
+    updateElementIds() {
+        // Update face IDs
+        for (let i = 0; i < this.faces.length; i++) {
+            this.faces[i].id = i;
+        }
+
+        // Update edge IDs
+        for (let i = 0; i < this.edges.length; i++) {
+            this.edges[i].id = i;
+        }
+
+        // Update vertex IDs
+        for (let i = 0; i < this.vertices.length; i++) {
+            this.vertices[i].id = i;
+        }
+    }
+
+
 }
 
 export default HEMesh;
