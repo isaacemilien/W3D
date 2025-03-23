@@ -101,12 +101,27 @@ class SelectionManagerHEDS {
 
     }
 
-    // Rebuild geometry from HEMesh and set it on the mesh
     refreshMeshGeometry() {
-        // SceneGraphManager.getUnpackedSceneGraphObjects()[0].geometry = SceneGraphManager.getUnpackedSceneGraphMeshes()[0].toBufferGeometry();
+        // Update the main mesh geometry
         this.curObj.object.geometry = this.curObj.heMesh.toBufferGeometry();
-    }
 
+        // Remove the old wireframe if it exists
+        if (this.curObj.edgeWireframe) {
+            Scene.removeObject(this.curObj.edgeWireframe);
+        }
+
+        // Create a new wireframe
+        const newWireframe = this.curObj.heMesh.createEdgeWireframe();
+
+        // Add to scene
+        Scene.addObject(newWireframe);
+
+        // Update wireframe reference and position
+        this.curObj.edgeWireframe = newWireframe;
+        if (this.curObj.linkWireframeToObject) {
+            this.curObj.linkWireframeToObject();
+        }
+    }
 
     onPointerDown(event) {
         event.preventDefault();
@@ -122,7 +137,7 @@ class SelectionManagerHEDS {
 
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, Camera.camera);
-        // We just intersect the main mesh. Then we figure out the nearest sub-element of the HEDS
+        // Just intersect the main mesh. Then figure out the nearest sub-element of the HEDS
         const intersects = raycaster.intersectObjects(SceneGraphManager.getUnpackedSceneGraphObjects());
         if (intersects.length === 0) {
 
@@ -135,7 +150,7 @@ class SelectionManagerHEDS {
             return;
         }
 
-        // We have an intersection
+        // Have an intersection
         const intersect = intersects[0];
         const pickedObj = intersect.object;
 
@@ -332,6 +347,9 @@ class SelectionManagerHEDS {
 
         // Update Three.js mesh geometry to reflect the new HEDS positions
         this.refreshMeshGeometry();
+
+        // Update wireframe positions
+        SceneGraphManager.updateWireframes();
     }
 
     // selection function call with object as parameter ? select object in Object mode
@@ -388,76 +406,97 @@ class SelectionManagerHEDS {
 
 
 
-    extrudeFace(distance = 1.0, scale = 1.0) {
-        if (!this.selectedElement || this.selectionMode !== 'FACE') {
-            console.warn("No face selected for extrusion.");
-            return;
-        }
-
-        const face = this.selectedElement;
-        const heMesh = this.curObj.heMesh;
-
-        // Calculate face normal
-        const faceNormal = this.calculateFaceNormal(face);
-
-        // Store original vertices
-        const originalVertices = [];
-        const newVertices = [];
-
-        // Create a map to track original vertices to their extruded counterparts
-        const vertexMap = new Map();
-
-        // Get face center for scaling
-        const faceCenter = this.calculateFaceCenter(face);
-
-        let startEdge = face.edge;
-        let currentEdge = startEdge;
-        do {
-            originalVertices.push(currentEdge.vertex);
-            currentEdge = currentEdge.next;
-        } while (currentEdge !== startEdge);
-
-        // Second pass: create new vertices
-        for (const vertex of originalVertices) {
-            // Calculate direction vector for scaling (from center to vertex)
-            const directionVector = new THREE.Vector3().subVectors(vertex.position, faceCenter);
-
-            // Create new vertex position:
-            const newPosition = new THREE.Vector3()
-                .copy(faceCenter)
-                .add(directionVector.multiplyScalar(scale))
-                .add(faceNormal.clone().multiplyScalar(distance));
-
-            // Create new vertex
-            const newVertex = heMesh.createVertex(newPosition.x, newPosition.y, newPosition.z);
-            newVertices.push(newVertex);
-            vertexMap.set(vertex, newVertex);
-        }
-
-        // Create new faces for the sides of the extrusion
-        for (let i = 0; i < originalVertices.length; i++) {
-            const v1 = originalVertices[i];
-            const v2 = originalVertices[(i + 1) % originalVertices.length];
-            const v3 = vertexMap.get(v2);
-            const v4 = vertexMap.get(v1);
-
-            // Create new quad face
-            heMesh.createFace([v1, v2, v3, v4]);
-        }
-
-        // Create the extruded face with new vertices
-        heMesh.createFace(newVertices);
-
-        // Remove the original face
-        heMesh.removeFace(face);
-
-        // Update the mesh geometry
-        this.refreshMeshGeometry();
-
-        // Clear selection
-        this.selectedElement = null;
-        this.transformControls.detach();
+// Modified extrude function for SelectionManagerHEDS.js
+extrudeFace(distance = 1.0, scale = 1.0) {
+    if (!this.selectedElement || this.selectionMode !== 'FACE') {
+        console.warn("No face selected for extrusion.");
+        return;
     }
+
+    const face = this.selectedElement;
+    const heMesh = this.curObj.heMesh;
+
+    // Calculate face normal
+    const faceNormal = this.calculateFaceNormal(face);
+
+    // Store original vertices
+    const originalVertices = [];
+    const newVertices = [];
+
+    // Create a map to track original vertices to their extruded counterparts
+    const vertexMap = new Map();
+
+    // Get face center for scaling
+    const faceCenter = this.calculateFaceCenter(face);
+
+    // Collect all vertices of the face
+    let startEdge = face.edge;
+    let currentEdge = startEdge;
+    do {
+        originalVertices.push(currentEdge.vertex);
+        currentEdge = currentEdge.next;
+    } while (currentEdge !== startEdge);
+
+    // Second pass: create new vertices
+    for (const vertex of originalVertices) {
+        // Calculate direction vector for scaling (from center to vertex)
+        const directionVector = new THREE.Vector3().subVectors(vertex.position, faceCenter);
+
+        // Create new vertex position:
+        const newPosition = new THREE.Vector3()
+            .copy(faceCenter)
+            .add(directionVector.multiplyScalar(scale))
+            .add(faceNormal.clone().multiplyScalar(distance));
+
+        // Create new vertex - ensure using the right method signature
+        const newVertex = heMesh.createVertex(
+            newPosition.x, 
+            newPosition.y, 
+            newPosition.z
+        );
+        
+        // Ensure the new vertex has necessary properties
+        if (!newVertex.position) {
+            newVertex.position = new THREE.Vector3(newPosition.x, newPosition.y, newPosition.z);
+        }
+        
+        newVertices.push(newVertex);
+        vertexMap.set(vertex, newVertex);
+    }
+
+    // Create new faces for the sides of the extrusion
+    for (let i = 0; i < originalVertices.length; i++) {
+        const v1 = originalVertices[i];
+        const v2 = originalVertices[(i + 1) % originalVertices.length];
+        const v3 = vertexMap.get(v2);
+        const v4 = vertexMap.get(v1);
+
+        // Create new quad face - make sure using the right method
+        const newFace = heMesh.createFace([v1, v2, v3, v4]);
+        
+        // Ensure the face has been properly created
+        if (!newFace) {
+            console.error("Failed to create side face during extrusion");
+        }
+    }
+
+    // Create the extruded face with new vertices
+    const topFace = heMesh.createFace(newVertices);
+    
+    if (!topFace) {
+        console.error("Failed to create top face during extrusion");
+    }
+
+    // Remove the original face
+    heMesh.removeFace(face);
+
+    // Update the mesh geometry
+    this.refreshMeshGeometry();
+
+    // Clear selection
+    this.selectedElement = null;
+    this.transformControls.detach();
+}
 
     // Helper method to calculate face normal
     calculateFaceNormal(face) {

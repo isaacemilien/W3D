@@ -228,30 +228,30 @@ class HEMesh {
     toBufferGeometry() {
         const positions = [];
         const normals = [];
-    
+
         for (let face of this.faces) {
             const verts = [];
             let startEdge = face.edge;
             let current = startEdge;
-            
+
             // Gather all vertices for this face
             do {
                 verts.push(current.vertex.position);
                 current = current.next;
             } while (current !== startEdge);
-    
+
             // Calculate face normal
             const normal = new THREE.Vector3();
             if (verts.length >= 3) {
                 const v0 = verts[0];
                 const v1 = verts[1];
                 const v2 = verts[2];
-                
+
                 const edge1 = new THREE.Vector3().subVectors(v1, v0);
                 const edge2 = new THREE.Vector3().subVectors(v2, v0);
                 normal.crossVectors(edge1, edge2).normalize();
             }
-    
+
             // If it's a triangle (3 verts)
             if (verts.length === 3) {
                 positions.push(
@@ -259,7 +259,7 @@ class HEMesh {
                     verts[1].x, verts[1].y, verts[1].z,
                     verts[2].x, verts[2].y, verts[2].z
                 );
-                
+
                 // Add normal for each vertex
                 for (let i = 0; i < 3; i++) {
                     normals.push(normal.x, normal.y, normal.z);
@@ -277,34 +277,28 @@ class HEMesh {
                     verts[2].x, verts[2].y, verts[2].z,
                     verts[3].x, verts[3].y, verts[3].z
                 );
-                
+
                 // Use the same normal for all vertices in the quad
                 for (let i = 0; i < 6; i++) {  // 6 vertices (2 triangles)
                     normals.push(normal.x, normal.y, normal.z);
                 }
             }
         }
-    
+
         const geom = new THREE.BufferGeometry();
         geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-        
-        // Don't compute vertex normals - we're using face normals
+
+        // Don't compute vertex normals, using face normals
         // geom.computeVertexNormals();
-    
+
         return geom;
     }
 
-
-    // Add these methods to your HEMesh class if they don't exist already
-
-    // Method to create a new vertex
     createVertex(x, y, z) {
-        const vertex = {
-            position: new THREE.Vector3(x, y, z),
-            edge: null,
-            id: this.vertices.length
-        };
+        const vertex = new HEVertex(new THREE.Vector3(x, y, z));
+        // Ensure vertex has an ID
+        vertex.id = this.vertices.length;
         this.vertices.push(vertex);
         return vertex;
     }
@@ -312,71 +306,87 @@ class HEMesh {
     // Method to create a face from an array of vertices
     createFace(vertices) {
         if (vertices.length < 3) {
-            console.error("Cannot create face with less than 3 vertices");
+            console.error("Cannot create face with fewer than 3 vertices");
             return null;
         }
 
-        // Create a new face
-        const face = {
-            edge: null,
-            id: this.faces.length
-        };
+        const face = new HEFace();
         this.faces.push(face);
 
         // Create half-edges for the face
         const edges = [];
         for (let i = 0; i < vertices.length; i++) {
-            const edge = {
-                vertex: vertices[i],
-                face: face,
-                next: null,
-                prev: null,
-                twin: null,
-                id: this.edges.length
-            };
+            const edge = new HEEdge();
+            edge.vertex = vertices[(i + 1) % vertices.length]; // Point to the next vertex
+            edge.face = face;
             this.edges.push(edge);
             edges.push(edge);
-
-            // Set vertex->edge reference
-            vertices[i].edge = edge;
         }
 
-        // Connect the edges
+        // Connect the edges in a cycle
         for (let i = 0; i < edges.length; i++) {
             const nextIndex = (i + 1) % edges.length;
-            const prevIndex = (i - 1 + edges.length) % edges.length;
-
             edges[i].next = edges[nextIndex];
-            edges[i].prev = edges[prevIndex];
         }
 
-        // Set face->edge reference
+        // Set face's edge reference
         face.edge = edges[0];
 
-        // Try to connect twins
-        this.connectTwins();
+        // Try to find and set opposite edges
+        this.findOppositeEdges();
 
         return face;
     }
 
+
+    findOppositeEdges() {
+        // Clear all existing opposite relationships
+        for (const edge of this.edges) {
+            edge.opposite = null;
+        }
+
+        // Find matching edge pairs
+        for (let i = 0; i < this.edges.length; i++) {
+            const e1 = this.edges[i];
+
+            if (e1.opposite) continue;
+
+            // Find an edge going in the opposite direction
+            for (let j = i + 1; j < this.edges.length; j++) {
+                const e2 = this.edges[j];
+
+                if (e2.opposite) continue;
+
+                // If e1 goes from v1->v2 and e2 goes from v2->v1
+                if (e1.vertex === e2.next.vertex && e2.vertex === e1.next.vertex) {
+                    e1.opposite = e2;
+                    e2.opposite = e1;
+                    break;
+                }
+            }
+        }
+    }
+
     // Method to remove a face
     removeFace(face) {
-        // First, find and remove all half-edges associated with this face
+        if (!face) return;
+        
+        // Collect all edges associated with the face
         const edgesToRemove = [];
-        let currentEdge = face.edge;
-        const startEdge = currentEdge;
-
+        let edge = face.edge;
+        const startEdge = edge;
+        
         do {
-            edgesToRemove.push(currentEdge);
-
-            // If this edge has a twin, update the twin's reference
-            if (currentEdge.twin) {
-                currentEdge.twin.twin = null;
+            edgesToRemove.push(edge);
+            
+            // If this edge has an opposite, update the opposite's reference
+            if (edge.opposite) {
+                edge.opposite.opposite = null;
             }
-
-            currentEdge = currentEdge.next;
-        } while (currentEdge !== startEdge);
-
+            
+            edge = edge.next;
+        } while (edge !== startEdge);
+        
         // Remove the edges from the edges array
         for (const edge of edgesToRemove) {
             const index = this.edges.indexOf(edge);
@@ -384,20 +394,17 @@ class HEMesh {
                 this.edges.splice(index, 1);
             }
         }
-
+        
         // Remove the face from the faces array
         const faceIndex = this.faces.indexOf(face);
         if (faceIndex !== -1) {
             this.faces.splice(faceIndex, 1);
         }
-
-        // Update IDs for remaining faces and edges
-        this.updateElementIds();
     }
 
     // Method to connect twin edges
     connectTwins() {
-        // This is a simple implementation - you might want to use a more efficient algorithm
+        // Simple implementation, might want to use a more efficient algorithm
         for (let i = 0; i < this.edges.length; i++) {
             const edge1 = this.edges[i];
             if (edge1.twin) continue; // Already has a twin
@@ -434,7 +441,60 @@ class HEMesh {
         }
     }
 
+    createEdgeWireframe() {
+        this.vertices.forEach((vertex, index) => {
+            if (vertex.id === undefined) vertex.id = index;
+        });
+        const edgePositions = [];
+        const processedEdgePairs = new Set();
 
+        // First pass: collect all edges from the mesh
+        for (const face of this.faces) {
+            let startEdge = face.edge;
+            let currentEdge = startEdge;
+
+            do {
+                const v1 = currentEdge.vertex;
+                const v2 = currentEdge.next.vertex;
+
+                // Create a unique key for this edge (smaller ID first for consistency)
+                const minId = Math.min(v1.id, v2.id);
+                const maxId = Math.max(v1.id, v2.id);
+                const edgeKey = `${minId}-${maxId}`;
+
+                if (!processedEdgePairs.has(edgeKey)) {
+                    processedEdgePairs.add(edgeKey);
+
+                    // Add line segment positions
+                    edgePositions.push(
+                        v1.position.x, v1.position.y, v1.position.z,
+                        v2.position.x, v2.position.y, v2.position.z
+                    );
+                }
+
+                currentEdge = currentEdge.next;
+            } while (currentEdge !== startEdge);
+        }
+
+        // Create the edges geometry
+        const edgeGeometry = new THREE.BufferGeometry();
+        edgeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(edgePositions, 3));
+
+        const edgeMaterial = new THREE.LineBasicMaterial({
+            color: "#91d9fa",  
+            linewidth: 4,
+            transparent: true,
+            opacity: 0.8,
+            depthTest: true
+        });
+
+        const wireframe = new THREE.LineSegments(edgeGeometry, edgeMaterial);
+
+        // Make wireframe non-interactive for raycasting
+        wireframe.raycast = () => { };
+
+        return wireframe;
+    }
 }
 
 export default HEMesh;

@@ -5,11 +5,15 @@ import PrimitiveFactory from '../models/PrimitiveFactory';
 
 class UI {
     constructor() {
+
+
         // Temp add object definition, move later
         document.getElementById("add-cube").addEventListener("click", () => {
             const cube = PrimitiveFactory.createCubeHEDS();
             SceneGraphManager.addObject(cube.object, cube.heMesh);
-        });
+            console.log("from tsdfsdfsdfsdfshe adders");
+
+        }, { once: true });
 
         document.getElementById("add-sphere").addEventListener("click", () => {
             SceneGraphManager.addObject(PrimitiveFactory.createSphere());
@@ -56,7 +60,7 @@ class UI {
             // Handle extrusion with 'E' key
             if (event.key === 'e' && !event.ctrlKey && !event.altKey) {
                 console.log("slkjfslk;jf;skldjfa;ksdjfa;oiolsdfjk");
-                
+
                 SelectionManagerHEDS.handleExtrusion(event);
             }
         });

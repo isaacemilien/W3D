@@ -29,6 +29,8 @@ function animate() {
     requestAnimationFrame(animate);
     Camera.update();
     Renderer.render(Scene.scene, Camera.camera);
+    // In your animation/render loop
+    SceneGraphManager.updateWireframes();
 }
 
 // Camera aspect ratio

@@ -12,7 +12,36 @@ class SceneGraphManager {
         } else {
             Scene.addObject(object);
         }
-        this.objects.set(object.uuid, { object, parent, heMesh });
+
+        // Create edge wireframe from the half-edge mesh
+        const edgeWireframe = heMesh.createEdgeWireframe();
+
+        // Add wireframe to scene, not as child of object
+        Scene.addObject(edgeWireframe);
+
+        // Link the wireframe to the object for transforms
+        const linkWireframeToObject = () => {
+            if (edgeWireframe && object) {
+                // Copy object's world transform to wireframe
+                object.updateWorldMatrix(true, false);
+                edgeWireframe.position.copy(object.position);
+                edgeWireframe.quaternion.copy(object.quaternion);
+                edgeWireframe.scale.copy(object.scale);
+            }
+        };
+
+        // Initial positioning
+        linkWireframeToObject();
+
+        // Store both the object and its wireframe along with the linking function
+        this.objects.set(object.uuid, {
+            object,
+            parent,
+            heMesh,
+            edgeWireframe,
+            linkWireframeToObject
+        });
+
         this.updateSceneGraph();
     }
 
@@ -24,6 +53,12 @@ class SceneGraphManager {
             } else {
                 Scene.removeObject(object);
             }
+
+            // Remove the wireframe too
+            if (entry.edgeWireframe) {
+                Scene.removeObject(entry.edgeWireframe);
+            }
+
             this.objects.delete(object.uuid);
         }
     }
@@ -55,11 +90,19 @@ class SceneGraphManager {
     }
 
     // temp method to unpack scene graph objects, not yet implemented in code
-    getUnpackedSceneGraphObjects(){
+    getUnpackedSceneGraphObjects() {
         return Array.from(this.objects.values()).map(value => value.object);
     }
-    getUnpackedSceneGraphMeshes(){
+    getUnpackedSceneGraphMeshes() {
         return Array.from(this.objects.values()).map(value => value.heMesh);
+    }
+
+    updateWireframes() {
+        for (const entry of this.objects.values()) {
+            if (entry.linkWireframeToObject) {
+                entry.linkWireframeToObject();
+            }
+        }
     }
 }
 

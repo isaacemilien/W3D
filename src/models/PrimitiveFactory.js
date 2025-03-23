@@ -8,7 +8,8 @@ class PrimitiveFactory {
         const heMesh = new HEMesh();
         heMesh.createBox();
         const sphereGeom = heMesh.toBufferGeometry();
-        const material = new THREE.MeshNormalMaterial();
+        const material = new THREE.MeshStandardMaterial();
+
         const object = new THREE.Mesh(sphereGeom, material);
         object.userData.name  = "pCube1";
 
