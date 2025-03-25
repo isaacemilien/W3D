@@ -407,6 +407,11 @@ class SelectionManagerHEDS {
 
 
 
+    /**
+     * Extrudes the currently selected face
+     * @param {number} distance - How far to extrude along normal
+     * @param {number} scale - Scale factor for the extruded face
+     */
     extrudeFace(distance = 1.0, scale = 1.0) {
         if (!this.selectedElement || this.selectionMode !== 'FACE') {
             console.warn("No face selected for extrusion");
@@ -414,19 +419,24 @@ class SelectionManagerHEDS {
         }
 
         const face = this.selectedElement;
-        const heMesh = this.curObj.heMesh;
+        const heMesh = this.curObj ? this.curObj.heMesh : null;
+        
+        if (!heMesh) {
+            console.error("No mesh object associated with selection");
+            return;
+        }
 
         // Use MeshOperations to handle the extrusion
         const result = MeshOperations.extrudeFace(heMesh, face, distance, scale);
-
+        
         if (!result) {
             console.error("Extrusion operation failed");
             return;
         }
-
+        
         // Update the mesh geometry
         this.refreshMeshGeometry();
-
+        
         // Clear selection after extrusion
         this.selectedElement = null;
         this.transformControls.detach();
