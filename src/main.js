@@ -4,7 +4,6 @@ import Renderer from './core/Renderer';
 import Camera from './core/Camera';
 import Lighting from './core/Lighting';
 import PrimitiveFactory from './models/PrimitiveFactory';
-import SelectionManager from './managers/SelectionManager';
 import SceneGraphManager from './managers/SceneGraphManager';
 import UI from './ui/ui';
 import HEMesh from './models/HEMesh';
