@@ -55,19 +55,24 @@ class UI {
 
         // Add this to your main keyboard event handler
         document.addEventListener('keydown', (event) => {
-            // Other key handlers...
-
             // Handle extrusion with 'E' key
             if (event.key === 'e' && !event.ctrlKey && !event.altKey) {
-                console.log("slkjfslk;jf;skldjfa;ksdjfa;oiolsdfjk");
-
                 SelectionManagerHEDS.handleExtrusion(event);
             }
         });
+
+        // Create and add the extrude button to the UI
+        this.createExtrusionButton();
     }
     createExtrusionButton() {
         const extrudeButton = document.createElement('button');
         extrudeButton.textContent = 'Extrude Face';
+        extrudeButton.id = 'extrude-face';
+
+        // Find an appropriate container to add the button to
+        const container = document.getElementById('toolbar-links') || document.body;
+        container.appendChild(extrudeButton);
+
         extrudeButton.addEventListener('click', () => {
             const distanceInput = prompt('Enter extrusion distance:', '1.0');
             const scaleInput = prompt('Enter scale factor:', '1.0');
@@ -75,15 +80,10 @@ class UI {
             const distance = parseFloat(distanceInput) || 1.0;
             const scale = parseFloat(scaleInput) || 1.0;
 
-            // Call the extrusion method
+            // Call the extrusion method on the selection manager
             SelectionManagerHEDS.extrudeFace(distance, scale);
         });
-
-        // Add the button to your UI container
-        this.toolsContainer.appendChild(extrudeButton);
     }
-
-
 
 
     // ISSUE editing rot || scale in attribute editor ? axis locked to world origin
