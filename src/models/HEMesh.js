@@ -370,23 +370,23 @@ class HEMesh {
     // Method to remove a face
     removeFace(face) {
         if (!face) return;
-        
+
         // Collect all edges associated with the face
         const edgesToRemove = [];
         let edge = face.edge;
         const startEdge = edge;
-        
+
         do {
             edgesToRemove.push(edge);
-            
+
             // If this edge has an opposite, update the opposite's reference
             if (edge.opposite) {
                 edge.opposite.opposite = null;
             }
-            
+
             edge = edge.next;
         } while (edge !== startEdge);
-        
+
         // Remove the edges from the edges array
         for (const edge of edgesToRemove) {
             const index = this.edges.indexOf(edge);
@@ -394,7 +394,7 @@ class HEMesh {
                 this.edges.splice(index, 1);
             }
         }
-        
+
         // Remove the face from the faces array
         const faceIndex = this.faces.indexOf(face);
         if (faceIndex !== -1) {
@@ -481,7 +481,7 @@ class HEMesh {
         edgeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(edgePositions, 3));
 
         const edgeMaterial = new THREE.LineBasicMaterial({
-            color: "#91d9fa",  
+            color: "#91d9fa",
             linewidth: 4,
             transparent: true,
             opacity: 0.8,
@@ -494,6 +494,127 @@ class HEMesh {
         wireframe.raycast = () => { };
 
         return wireframe;
+    }
+
+
+    /**
+     * Splits a face along its middle, creating two new faces
+     * @param {HEFace} face - The face to split
+     * @param {string} direction - Direction to split ('horizontal' or 'vertical')
+     * @returns {Object} - Object containing the two new faces and new edges
+     */
+    splitFace(face, direction = 'horizontal') {
+        if (!face) {
+            console.error("Cannot split: face is null or undefined");
+            return null;
+        }
+
+        // Get all vertices of the face
+        const faceVertices = this.collectVerticesOfFace(face);
+
+        // We need a quad face (4 vertices) to split properly
+        if (faceVertices.length !== 4) {
+            console.error("Face splitting is only supported for quad faces");
+            return null;
+        }
+
+        // Determine the pairs of vertices to connect
+        // For a quad face with vertices in order [v0, v1, v2, v3]:
+        // - Horizontal split connects v0-v2 (creates a line from left to right)
+        // - Vertical split connects v1-v3 (creates a line from top to bottom)
+        const v0 = faceVertices[0];
+        const v1 = faceVertices[1];
+        const v2 = faceVertices[2];
+        const v3 = faceVertices[3];
+
+        // Determine which vertices to connect based on direction
+        let startVertex, endVertex;
+        if (direction === 'horizontal') {
+            startVertex = v0;
+            endVertex = v2;
+        } else { // vertical
+            startVertex = v1;
+            endVertex = v3;
+        }
+
+        // Calculate middle points between the vertices
+        const midPoint = new THREE.Vector3()
+            .addVectors(startVertex.position, endVertex.position)
+            .multiplyScalar(0.5);
+
+        // Create a new vertex at the midpoint
+        const midVertex = this.createVertex(midPoint.x, midPoint.y, midPoint.z);
+
+        // Remove the original face
+        const originalEdges = this.collectEdgesOfFace(face);
+        this.removeFace(face);
+
+        // Create new faces based on the direction
+        let face1, face2;
+        if (direction === 'horizontal') {
+            // Split horizontally: v0-v1-midVertex and midVertex-v2-v3
+            face1 = this.createFace([v0, v1, midVertex]);
+            face2 = this.createFace([midVertex, v2, v3, v0]);
+        } else {
+            // Split vertically: v0-v1-midVertex and midVertex-v2-v3-v0
+            face1 = this.createFace([v0, v1, midVertex, v3]);
+            face2 = this.createFace([v1, v2, v3, midVertex]);
+        }
+
+        // Reconnect the half-edges with their opposites
+        this.findOppositeEdges();
+
+        return {
+            faces: [face1, face2],
+            newVertex: midVertex
+        };
+    }
+
+    /**
+     * Helper method to collect all vertices of a face in order
+     * @param {HEFace} face - The face to collect vertices from
+     * @returns {Array} - Array of vertices in order
+     */
+    collectVerticesOfFace(face) {
+        const vertices = [];
+
+        if (!face || !face.edge) {
+            return vertices;
+        }
+
+        let currentEdge = face.edge;
+        const startEdge = currentEdge;
+
+        do {
+            // For each half-edge, get the vertex it points to
+            vertices.push(currentEdge.vertex);
+            currentEdge = currentEdge.next;
+        } while (currentEdge !== startEdge);
+
+        return vertices;
+    }
+
+    /**
+     * Helper method to collect all edges of a face in order
+     * @param {HEFace} face - The face to collect edges from
+     * @returns {Array} - Array of edges in order
+     */
+    collectEdgesOfFace(face) {
+        const edges = [];
+
+        if (!face || !face.edge) {
+            return edges;
+        }
+
+        let currentEdge = face.edge;
+        const startEdge = currentEdge;
+
+        do {
+            edges.push(currentEdge);
+            currentEdge = currentEdge.next;
+        } while (currentEdge !== startEdge);
+
+        return edges;
     }
 }
 

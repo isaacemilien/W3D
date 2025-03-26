@@ -20,6 +20,8 @@ class SelectionManagerHEDS {
             get: () => this.selectionManager.selectionMode,
             set: (mode) => this.selectionManager.setSelectionMode(mode)
         });
+
+        document.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
 
     // Public API methods that match the original class
@@ -31,15 +33,20 @@ class SelectionManagerHEDS {
     extrudeFace(distance = 1.0, scale = 1.0) {
         this.selectionManager.performExtrusion(distance, scale);
     }
-
-    handleExtrusion(event) {
+    handleKeyDown(event) {
         if (event.key === 'e' && this.selectionMode === 'FACE' && this.selectedElement) {
             this.extrudeFace(1.0, 1.0);
         }
+
+        if (event.key === 's' && this.selectionMode === 'FACE' && this.selectedElement) {
+            this.splitFace('auto');
+        }
+    }
+    splitFace(direction = 'auto') {
+        this.selectionManager.performFaceSplit(direction);
     }
 
     updateHEDSFromTransform() {
-        // This is handled internally by the SelectionManager now
         const transformMatrix = this.selectionManager.transformManager.getLastMatrix();
         this.selectionManager.handleTransformUpdate(transformMatrix);
     }

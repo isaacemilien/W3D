@@ -61,9 +61,36 @@ class UI {
             }
         });
 
+        this.createFaceSplitButton();
+
         // Create and add the extrude button to the UI
         this.createExtrusionButton();
     }
+
+    createFaceSplitButton() {
+        const splitButton = document.createElement('button');
+        splitButton.textContent = 'Split Face';
+        splitButton.id = 'split-face';
+
+        // Find an appropriate container to add the button to
+        const container = document.getElementById('toolbar-links') || document.body;
+        container.appendChild(splitButton);
+
+        splitButton.addEventListener('click', () => {
+            const directionOptions = ['auto', 'horizontal', 'vertical'];
+            let direction = 'auto';
+
+            // Optional: Create a simple dialog to select direction
+            const selectedOption = prompt('Select split direction (auto, horizontal, vertical):', 'auto');
+            if (selectedOption && directionOptions.includes(selectedOption.toLowerCase())) {
+                direction = selectedOption.toLowerCase();
+            }
+
+            // Call the split method on the selection manager
+            SelectionManagerHEDS.selectionManager.performFaceSplit(direction);
+        });
+    }
+
     createExtrusionButton() {
         const extrudeButton = document.createElement('button');
         extrudeButton.textContent = 'Extrude Face';
