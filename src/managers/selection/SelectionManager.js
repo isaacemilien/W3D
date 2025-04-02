@@ -59,7 +59,7 @@ class SelectionManager {
 
         // Update UI if in object mode
         if (this.selectionMode === 'OBJECT') {
-            UI.updateObjectPropertiesPanel(this.currentMeshWrapper.object);
+            // UI.updateObjectPropertiesPanel(this.currentMeshWrapper.object);
         }
     }
 
@@ -92,7 +92,7 @@ class SelectionManager {
 
         // Set up transform controls
         this.transformManager.setupTransformControls('OBJECT', pivotPosition, object);
-        UI.updateObjectPropertiesPanel(object);
+        // UI.updateObjectPropertiesPanel(object);
     }
 
     // API method for mesh operations

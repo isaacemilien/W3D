@@ -27,17 +27,71 @@
   </div>
 
   <div id="toolbar">
-    <ul id="toolbar-links">
-      <li><button id="add-cube">Add cube</button></li>
-      <li><button id="add-sphere">Add sphere</button></li>
-      <li><button id="move">Move</button></li>
-      <li><button id="rot">Rotate</button></li>
-      <li><button id="scale">Scale</button></li>
-      <li><button id="object-mode">Object</button></li>
-      <li><button id="vertex-mode">Vertex</button></li>
-      <li><button id="edge-mode">Edge</button></li>
-      <li><button id="face-mode">Face</button></li>
-    </ul>
+    <div class="toolbar-section">
+      <span class="section-label">CREATE</span>
+      <div id="toolbar-links">
+        <button id="add-cube" data-tooltip="Create Cube">
+          <span class="tool-icon">◻</span>
+        </button>
+        <button id="add-sphere" data-tooltip="Create Sphere">
+          <span class="tool-icon">○</span>
+        </button>
+        <button id="add-cylinder" data-tooltip="Create Cylinder">
+          <span class="tool-icon">⌭</span>
+        </button>
+        <button id="add-plane" data-tooltip="Create Plane">
+          <span class="tool-icon">▭</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="toolbar-section">
+      <span class="section-label">TRANSFORM</span>
+      <div id="toolbar-links">
+        <button id="move" class="mode-button" data-tooltip="Move Tool (W)">
+          <span class="tool-icon">↹</span>
+        </button>
+        <button id="rot" class="mode-button" data-tooltip="Rotate Tool">
+          <span class="tool-icon">⟳</span>
+        </button>
+        <button id="scale" class="mode-button" data-tooltip="Scale Tool (R)">
+          <span class="tool-icon">⤧</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="toolbar-section">
+      <span class="section-label">SELECTION</span>
+      <div id="toolbar-links">
+        <button id="object-mode" class="mode-button active" data-tooltip="Object Mode (1)">
+          <span class="tool-icon">□</span>
+        </button>
+        <button id="vertex-mode" class="mode-button" data-tooltip="Vertex Mode (2)">
+          <span class="tool-icon">•</span>
+        </button>
+        <button id="edge-mode" class="mode-button" data-tooltip="Edge Mode (3)">
+          <span class="tool-icon">╱</span>
+        </button>
+        <button id="face-mode" class="mode-button" data-tooltip="Face Mode (4)">
+          <span class="tool-icon">▢</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- <div class="toolbar-section">
+      <span class="section-label">MODIFY</span>
+      <div id="toolbar-links">
+        <button id="extrude-face" data-tooltip="Extrude Face">
+          <span class="tool-icon">⇗</span>
+        </button>
+        <button id="split-face" data-tooltip="Split Face">
+          <span class="tool-icon">✂</span>
+        </button>
+        <button id="bevel" data-tooltip="Bevel">
+          <span class="tool-icon">◢</span>
+        </button>
+      </div>
+    </div> -->
   </div>
 
 

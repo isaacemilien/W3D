@@ -1,104 +1,166 @@
+/* Maya-inspired Tool Shelf Styling */
+
+:root {
+  --maya-dark-grey: #535353;
+  --maya-mid-grey: #464646;
+  --maya-light-grey: #5a5a5a;
+  --maya-highlight: #5285a6;
+  --maya-text: #cccccc;
+  --maya-icon-size: 32px;
+  --maya-shelf-height: 46px;
+}
+
 body {
-  font-family: 'Noto Sans', Arial, sans-serif;
+  font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #333333;
 }
 
 #toolbar {
   position: absolute;
-  background-color: #464645;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 10%;
-  /* border: 1% solid #3a3a3a; */
-  align-content: center;
+  height: var(--maya-shelf-height);
+  background-color: var(--maya-mid-grey);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 100;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 #toolbar-links {
-  list-style: none;
+  display: flex;
   margin: 0;
   padding: 0;
   list-style: none;
-  display: flex;
-  height: 90%;
-  background-color: #3a3a3a;
+  height: 100%;
+  background-color: var(--maya-mid-grey);
+  align-items: center;
 }
 
-/* Copy from outliner buttons, remove redundant later */
-#toolbar-links button {
-  width: 100%;
-  border-radius: 0;
-  background: none;
-  color: #ebeceb;
-  border: none;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-  padding: 4% 20% 4% 20%;
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border-right: 1px solid var(--maya-dark-grey);
   height: 100%;
 }
 
+#toolbar-links button {
+  width: var(--maya-icon-size);
+  height: var(--maya-icon-size);
+  margin: 0 3px;
+  background-color: var(--maya-light-grey);
+  color: var(--maya-text);
+  border: 1px solid var(--maya-dark-grey);
+  border-radius: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 0.75rem;
+  position: relative;
+}
+
+#toolbar-links button:hover {
+  background-color: var(--maya-highlight);
+}
+
+#toolbar-links button.active {
+  background-color: var(--maya-highlight);
+  box-shadow: inset 0 0 3px rgba(0,0,0,0.5);
+}
+
+/* Section labels */
+.section-label {
+  font-size: 0.7rem;
+  color: var(--maya-text);
+  margin-right: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: var(--maya-shelf-height);
+  display: flex;
+  align-items: center;
+}
+
+/* Tool tooltips */
+#toolbar-links button:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background-color: #222222;
+  color: white;
+  font-size: 0.75rem;
+  border-radius: 2px;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Mode toggle effect */
+.mode-button {
+  position: relative;
+}
+
+.mode-button.active::before {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #4bafff;
+}
+
+/* Icons with better visuals */
+.tool-icon {
+  font-size: 16px;
+  pointer-events: none;
+}
+
+/* Outliner styling */
 #outliner-container {
   position: absolute;
-  background-color: #3a3a3a;
-  width: 15%;
-  height: 100%;
-  top: 10%;
+  left: 0;
+  top: var(--maya-shelf-height);
+  width: 240px;
+  height: calc(100% - var(--maya-shelf-height));
+  background-color: var(--maya-dark-grey);
+  color: var(--maya-text);
+  border-right: 1px solid #2a2a2a;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
 }
 
 #outliner-title {
-  color: #ffffff;
-  padding-left: 10%;
+  background-color: var(--maya-mid-grey);
+  color: var(--maya-text);
+  padding: 8px 12px;
   margin: 0;
-  padding: 4% 0 4% 10%;
-  background-color: #464645;
-}
-
-#outliner-content {
-  height: 100%;
-  background-color: #3a3a3a;
-  border: 4px solid #464645;
-  border-top: none;
-}
-
-#outliner-content ul {
-  padding-left: 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #2a2a2a;
 }
 
 #outliner-content ul li button {
-  width: 100%;
-  border-radius: 0;
-  background: none;
-  color: #ebeceb;
+  background-color: transparent;
+  color: var(--maya-text);
   border: none;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-  outline: inherit;
+  padding: 6px 12px;
   text-align: left;
-  padding: 4% 0 4% 20%;
+  width: 100%;
+  font-size: 0.85rem;
 }
 
-#outliner-content ul li button:hover, #toolbar-links button:hover{
-  background-color: #303030;
+#outliner-content ul li button:hover {
+  background-color: var(--maya-light-grey);
 }
 
-#scene-graph {
-  margin-top: 0;
-}
-
-
-/* Color on selection attempt */
-/* #outliner-content ul li button::selection {
-  background-color: #6484a0;
-} */
-
-
-
-
-
-#properties-container {
-  position: absolute;
-  background-color: #3a3a3a;
-  width: 15%;
-  height: 100%;
-  top: 10%;
-  right: 0;
+#outliner-content ul li button.selected {
+  background-color: var(--maya-highlight);
 }

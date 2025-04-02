@@ -11,7 +11,7 @@ class PrimitiveFactory {
         const material = new THREE.MeshStandardMaterial();
 
         const object = new THREE.Mesh(sphereGeom, material);
-        object.userData.name  = "pCube1";
+        object.userData.name  = "pCube";
 
         return {object, heMesh}
     }
