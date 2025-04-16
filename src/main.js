@@ -5,12 +5,13 @@ import Camera from './core/Camera';
 import Lighting from './core/Lighting';
 // import PrimitiveFactory from './models/PrimitiveFactory';
 // import SceneGraphManager from './managers/SceneGraphManager';
-// import UI from './ui/ui';
+import UI from './ui/ui';
 // import HEMesh from './models/HEMesh';
 // import SelectionManagerHEDS from './managers/SelectionManagerHEDS';
 import SceneGraph from './managers/SceneGraph';
 import Queries from './managers/Queries';
 import { HalfedgeDS } from 'three-mesh-halfedge';
+import Factory from './managers/Factory';
 
 // SceneGraphManager.addObject(PrimitiveFactory.createCube());
 // SceneGraphManager.addObject(PrimitiveFactory.createSphere());
@@ -38,6 +39,7 @@ Scene.addObject(gridHelper);
 // Scene.addObject(mesh);
 
 
+// Factory.createCube();
 
 // Update loop  
 function animate() {
