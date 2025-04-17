@@ -12,34 +12,36 @@ import SceneGraph from './managers/SceneGraph';
 import Queries from './managers/Queries';
 import { HalfedgeDS } from 'three-mesh-halfedge';
 import Factory from './managers/Factory';
+import Selector from './managers/Selector';
 
-// SceneGraphManager.addObject(PrimitiveFactory.createCube());
-// SceneGraphManager.addObject(PrimitiveFactory.createSphere());
+// import Selector from './managers/Selector';
+
 
 // Add grid scene, eventually place in seperate class with more advanced grid logic
 const gridHelper = new THREE.GridHelper(10, 10, 0x888888, 0x444444);
 Scene.addObject(gridHelper);
 
+Factory.createCube();
 
-// const cube = PrimitiveFactory.createCubeHEDS();
-// SceneGraphManager.addObject(cube.object, cube.heMesh);
+const selector = new Selector();
 
-// SelectionManagerHEDS.selectObject(cube.object);
+function onPointerDown(event) {
+    event.preventDefault();
 
+    console.log(selector.pickElement(event, "OBJECT"));
 
-// const geometry = new THREE.BoxGeometry(1, 1, 1);
-// const material = new THREE.MeshStandardMaterial({ color: 0x6699ff, metalness: 0, roughness: 0.5 });
+    const result = selector.pickElement(event, "OBJECT");
+    
+    const { pickedObject, pickedElement, pivotPosition } = result;
+   
+    // Set up the current selection
+    SceneGraph.currentMeshWrapper = SceneGraph.getObjectById(pickedObject.uuid);
+    SceneGraph.selectedElement = pickedElement;
 
-// const struct = new HalfedgeDS();
-// struct.setFromGeometry(geometry, 1e-10);
+    UI.updateObjectPropertiesPanel(SceneGraph.currentMeshWrapper.object);
+}
 
-// const newMesh = Queries.halfedgeToGeometry(struct)
-
-// const mesh = new THREE.Mesh(newMesh, material);
-// Scene.addObject(mesh);
-
-
-// Factory.createCube();
+document.querySelector('canvas').addEventListener('pointerdown', onPointerDown, false);
 
 // Update loop  
 function animate() {

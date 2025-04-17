@@ -1,17 +1,21 @@
 import Scene from '../core/Scene';
-import { HalfedgeDS, } from 'three-mesh-halfedge';
-import { Object3D } from 'three'; // Assuming we're using Three.js
+import { Halfedge, Vertex, HalfedgeDS, Face } from 'three-mesh-halfedge';
+import { Mesh, Object3D } from 'three'; // Assuming we're using Three.js
+import { MeshWrapper } from './types';
 
-interface SceneObjectEntry {
-    object: Object3D;
-    heStruct: HalfedgeDS;
-}
+type SelectionMode = 'OBJECT' | 'VERTEX' | 'EDGE' | 'FACE';
 
 class SceneGraph {
-    private objects: Map<string, SceneObjectEntry>;
+    private objects: Map<string, MeshWrapper>;
+
+    public selectedObject: boolean;
+    public selectionMode: SelectionMode;
+    public selectedElement: Vertex | Halfedge | Face | null;
+    public currentMeshWrapper: MeshWrapper; // Current { object, heMesh, ... } from SceneGraphManager
+
 
     constructor() {
-        this.objects = new Map<string, SceneObjectEntry>();
+        this.objects = new Map<string, MeshWrapper>();
     }
 
     public addObject(object: Object3D, heStruct: HalfedgeDS): void {
@@ -31,8 +35,12 @@ class SceneGraph {
         }
     }
 
-    public getObjectById(id: string): SceneObjectEntry | null {
+    public getObjectById(id: string): MeshWrapper | null {
         return this.objects.get(id) || null;
+    }
+
+    public getUnpackedSceneGraphObjects(): Object3D[] {
+        return Array.from(this.objects.values()).map(value => value.object);
     }
 }
 
