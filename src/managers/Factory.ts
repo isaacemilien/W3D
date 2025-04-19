@@ -3,6 +3,7 @@ import Scene from '../core/Scene';
 import { HalfedgeDS } from 'three-mesh-halfedge';
 import Queries from './Queries';
 import SceneGraph from './SceneGraph';
+import { extrudeFace } from './Operations';
 
 class Factory {
 
@@ -25,12 +26,15 @@ class Factory {
         const struct = new HalfedgeDS();
         struct.setFromGeometry(geometry, 1e-10);
 
-        const mesh = new THREE.Mesh(geometry, material);
+
+        const bonkersStruct = extrudeFace(struct, struct.faces[9], 1);
+
+        const newGeometry = Queries.halfedgeToGeometry(bonkersStruct);
+
+        const mesh = new THREE.Mesh(newGeometry, material);
         
-        SceneGraph.addObject(mesh as unknown as THREE.Object3D, struct);
+        SceneGraph.addObject(mesh as unknown as THREE.Object3D, bonkersStruct);
     }
-
-
 
     static createSphere(radius = 1, widthSegments = 32, heightSegments = 32) {
         const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);

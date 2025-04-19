@@ -13,7 +13,9 @@ import Queries from './managers/Queries';
 import { HalfedgeDS } from 'three-mesh-halfedge';
 import Factory from './managers/Factory';
 import Selector from './managers/Selector';
-
+import { extrudeFace } from './managers/Operations';
+import Transform from './managers/Transform';
+import Updater from './managers/Updater';
 // import Selector from './managers/Selector';
 
 
@@ -24,6 +26,9 @@ Scene.addObject(gridHelper);
 Factory.createCube();
 
 const selector = new Selector();
+const transform = new Transform()
+
+const updater = new Updater(transform)
 
 function onPointerDown(event) {
     event.preventDefault();
@@ -31,17 +36,35 @@ function onPointerDown(event) {
     console.log(selector.pickElement(event, "OBJECT"));
 
     const result = selector.pickElement(event, "OBJECT");
-    
+
     const { pickedObject, pickedElement, pivotPosition } = result;
-   
+
     // Set up the current selection
     SceneGraph.currentMeshWrapper = SceneGraph.getObjectById(pickedObject.uuid);
     SceneGraph.selectedElement = pickedElement;
+    SceneGraph.selectionMode = 'OBJECT'
+
+    // Set up transform controls
+    transform.setupTransformControls(
+        "OBJECT",
+        pivotPosition,
+        pickedObject
+    );
 
     UI.updateObjectPropertiesPanel(SceneGraph.currentMeshWrapper.object);
 }
 
+
 document.querySelector('canvas').addEventListener('pointerdown', onPointerDown, false);
+
+
+
+const obj = SceneGraph.getUnpackedSceneGraphObjects()[0];
+const meshWrapper = SceneGraph.getObjectById(obj.uuid); 
+console.log("дылволаыдлвао", meshWrapper)
+
+const struct = meshWrapper.heStruct;
+
 
 // Update loop  
 function animate() {

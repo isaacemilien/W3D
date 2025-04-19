@@ -48,7 +48,7 @@ class Selector {
         // Get the first intersection
         const intersect = intersects[0];
         const pickedObject = intersect.object;
-        
+
         // Get the mesh wrapper from SceneGraphManager
         const meshWrapper = SceneGraph.getObjectById(pickedObject.uuid) as MeshWrapper;
         if (!meshWrapper) return null;
@@ -80,12 +80,12 @@ class Selector {
                 }
                 break;
                 
-            // case 'FACE':
-                // pickedElement = this.getIntersectedFace(intersect, meshWrapper.heStruct.faces);
-                // if (pickedElement) {
-                //     pivotPosition = this.calculateFaceCenter(pickedElement);
-                // }
-                // break;
+            case 'FACE':
+                pickedElement = this.getIntersectedFace(intersect.faceIndex, meshWrapper.heStruct.faces);
+                if (pickedElement) {
+                    pivotPosition = this.calculateFaceCenter(pickedElement);
+                }
+                break;
         }
         
         return {
@@ -189,19 +189,19 @@ class Selector {
         return closestPoint.distanceTo(point);
     }
     
-    // private getIntersectedFace(intersect: THREE.Intersection, faces: Array<Face>): Face | null {
-    //     if (!faces || faces.length === 0) return null;
+    private getIntersectedFace(faceIndex: number, faces: Array<Face>): Face | null {
+        if (!faces || faces.length === 0) return null;
         
-    //     // For simple quad (or triangulated quad) meshes, determine the face from the face index in the intersection
-    //     const triIndex = intersect.faceIndex;
+        // For simple quad (or triangulated quad) meshes, determine the face from the face index in the intersection
+        const triIndex = faceIndex;
         
-    //     // Check if faceIndex exists (it should, but TypeScript needs this check)
-    //     if (triIndex === undefined) return null;
+        // Check if faceIndex exists (it should, but TypeScript needs this check)
+        if (triIndex === undefined) return null;
         
-    //     const faceId = Math.floor(triIndex / 2); // quads triangulated into 2 triangles
+        const faceId = Math.floor(triIndex / 2); // quads triangulated into 2 triangles
         
-    //     return faces[faceId] || null;
-    // }
+        return faces[faceId] || null;
+    }
 }
 
 export default Selector;
