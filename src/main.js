@@ -3,59 +3,55 @@ import Scene from './core/Scene';
 import Renderer from './core/Renderer';
 import Camera from './core/Camera';
 import Lighting from './core/Lighting';
-// import PrimitiveFactory from './models/PrimitiveFactory';
-// import SceneGraphManager from './managers/SceneGraphManager';
-import UI from './ui/ui';
-// import HEMesh from './models/HEMesh';
-// import SelectionManagerHEDS from './managers/SelectionManagerHEDS';
+import UI from './managers/UI';
 import SceneGraph from './managers/SceneGraph';
-import Queries from './managers/Queries';
 import { HalfedgeDS } from 'three-mesh-halfedge';
 import Factory from './managers/Factory';
 import Selector from './managers/Selector';
-import { extrudeFace } from './managers/Operations';
-import Transform from './managers/Transform';
-import Updater from './managers/Updater';
-// import Selector from './managers/Selector';
 
 
-// Add grid scene, eventually place in seperate class with more advanced grid logic
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
+
+// Add grid to scene
 const gridHelper = new THREE.GridHelper(10, 10, 0x888888, 0x444444);
 Scene.addObject(gridHelper);
 
+// Create initial cube
 Factory.createCube();
 
-const transform = new Transform()
-
-const updater = new Updater(transform)
-
+// Set up event listeners for selection
 function onPointerDown(event) {
     event.preventDefault();
-
-    // console.log(Selector.getElementAtMousePosition(event, "OBJECT"));
-
-    const result = Selector.getElementAtMousePosition(event, "OBJECT");
-    
-    const { pickedObject, pickedElement, pivotPosition } = result;
-
-    // Set up transform controls
-    transform.setupTransformControls(
-        "OBJECT",
-        pivotPosition,
-        pickedObject
-    );
+    Selector.getElementAtMousePosition(event, Selector.selectionMode);
 }
-
 
 document.querySelector('canvas').addEventListener('pointerdown', onPointerDown, false);
 
+// Set up transform control mode listeners
+document.getElementById("move").addEventListener("click", () => {
+    Selector.transform.setTransformMode("translate");
+});
+
+document.getElementById("rot").addEventListener("click", () => {
+    Selector.transform.setTransformMode("rotate");
+});
+
+document.getElementById("scale").addEventListener("click", () => {
+    Selector.transform.setTransformMode("scale");
+});
+
+// Auto-select the first object in the scene
+// const autoSelectFirstObject = () => {
+//     const objects = SceneGraph.getUnpackedSceneGraphObjects();
+//     if (objects.length > 0) {
+//         Selector.selectObject(objects[0]);
+//     }
+// };
+
+// Run auto-select after a short delay to ensure objects are loaded
+// setTimeout(autoSelectFirstObject, 100);
 
 
-const obj = SceneGraph.getUnpackedSceneGraphObjects()[0];
-const meshWrapper = SceneGraph.getObjectById(obj.uuid); 
-console.log("дылволаыдлвао", meshWrapper)
-
-const struct = meshWrapper.heStruct;
 
 
 // Update loop  

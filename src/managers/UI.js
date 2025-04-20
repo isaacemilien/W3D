@@ -1,10 +1,8 @@
 import * as THREE from 'three'
-import SelectionManagerHEDS from '../managers/SelectionManagerHEDS';
-import SceneGraphManager from '../managers/SceneGraphManager';
-import PrimitiveFactory from '../models/PrimitiveFactory';
-import Factory from '../managers/Factory';
-import Queries from '../managers/Queries';
-import Updater from '../managers/Updater';
+import Factory from './Factory';
+import Queries from './Queries';
+import Updater from './Updater';
+import Selector from './Selector';
 
 class UI {
   constructor() {
@@ -218,6 +216,7 @@ class UI {
 
     // Expand the panel when an object is selected
     propertiesPanel.classList.remove('collapsed');
+    Selector.selectObject(object);
 
     propertiesPanel.innerHTML = `
         <h3>Object Properties</h3>

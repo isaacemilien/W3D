@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 import Camera from '../core/Camera';
 import Renderer from '../core/Renderer';
-import SceneGraphManager from './SceneGraphManager';
 
 import { Halfedge, Vertex, HalfedgeDS, Face } from 'three-mesh-halfedge';
 
 import { MeshWrapper, SelectionMode } from './types';
 import SceneGraph from './SceneGraph';
-import UI from '../ui/ui';
+import UI from './UI';
+import Transform from './Transform';
 
 interface PickResult {
     pickedObject: THREE.Object3D;
@@ -16,18 +16,20 @@ interface PickResult {
 }
 
 class Selector {
-    private selectionManager: any;
     private raycaster: THREE.Raycaster;
     private mouse: THREE.Vector2;
 
     public isElementCurrentlySelected: boolean;
     public selectionMode: SelectionMode;
     public selectedElement: Vertex | Halfedge | Face | null;
-    public currentMeshWrapper: MeshWrapper; // Current { object, heMesh, ... } from SceneGraph
+    public currentMeshWrapper: MeshWrapper | null; // Current { object, heStruct, ... } from SceneGraph
 
     constructor() {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
+        this.selectionMode = 'OBJECT';
+        this.selectedElement = null;
+        this.isElementCurrentlySelected = false;
     }
 
     public setSelectedElement(
@@ -39,13 +41,23 @@ class Selector {
         this.selectedElement = element;
         this.selectionMode = mode;
         this.isElementCurrentlySelected = element !== null;
-        
+
         // Log selection for debugging
         console.log(`Selected ${mode}:`, this.currentMeshWrapper);
         UI.updateObjectPropertiesPanel(this.currentMeshWrapper);
     }
 
+    public selectObject(object: THREE.Object3D): void {
+        this.isElementCurrentlySelected = object !== null;
+        this.currentMeshWrapper = SceneGraph.getObjectById(object.uuid) as MeshWrapper;
+        const pivotPosition = this.calculateObjectCenter(this.currentMeshWrapper);
+
+        Transform.setupTransformControls("OBJECT", object, pivotPosition);
+    }
+
     public getElementAtMousePosition(event: MouseEvent, selectionMode: SelectionMode): PickResult | null {
+
+
         // Get normalized device coordinates
         const rect = Renderer.renderer.domElement.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -59,13 +71,22 @@ class Selector {
             SceneGraph.getUnpackedSceneGraphObjects()
         );
 
+        // On hit nothing
         if (intersects.length === 0) {
+            this.clearSelection();
+            Transform.detachControls();
+            UI.togglePropertiesPanel(false);
+
             return null;
         }
 
         // Get the first intersection
         const intersect = intersects[0];
         const pickedObject = intersect.object;
+
+        if (pickedObject == this.currentMeshWrapper?.object) {
+            return null;
+        }
 
         // Get the mesh wrapper from SceneGraphManager
         const meshWrapper = SceneGraph.getObjectById(pickedObject.uuid) as MeshWrapper;
@@ -78,13 +99,15 @@ class Selector {
         switch (selectionMode) {
             case 'OBJECT':
                 // For object selection, return the object center as pivot
-                pivotPosition = this.calculateObjectCenter(meshWrapper);
+                // this.selectObject(pickedObject);
+                // pivotPosition = this.calculateObjectCenter(meshWrapper);
+                this.selectObject(pickedObject);
                 break;
 
             case 'VERTEX':
                 pickedElement = this.getNearestVertex(intersect.point, meshWrapper.heStruct.vertices);
                 if (pickedElement) {
-                    pivotPosition = pickedElement.position.clone() as THREE.Vector3 | null ;
+                    pivotPosition = pickedElement.position.clone();
                 }
                 break;
 
@@ -105,8 +128,6 @@ class Selector {
                 }
                 break;
         }
-
-        this.setSelectedElement(meshWrapper, pickedElement, selectionMode)
 
         return {
             pickedObject,
@@ -221,6 +242,12 @@ class Selector {
         const faceId = Math.floor(triIndex / 2); // quads triangulated into 2 triangles
 
         return faces[faceId] || null;
+    }
+
+    public clearSelection(): void {
+        this.isElementCurrentlySelected = false;
+        this.selectedElement = null;
+        this.currentMeshWrapper = null; // Current { object, heStruct, ... } from SceneGraph
     }
 }
 

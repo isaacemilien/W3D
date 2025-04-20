@@ -10,44 +10,55 @@ class Updater {
     constructor() {
     }
 
-    handleTransformUpdate(currentMatrix, lastMatrix, transformDummy) {
-        if (!SceneGraph.currentMeshWrapper) return;
+    handleTransformUpdate() {
+        if (!Selector.currentMeshWrapper) return;
 
-        switch (SceneGraph.selectionMode) {
+        const transformDummy = Selector.transform.getTransformDummy();
+        const meshWrapper = Selector.currentMeshWrapper;
+        const object = meshWrapper.object;
+
+        switch (Selector.selectionMode) {
             case 'OBJECT':
-                this.updateMeshFromTransform(
-                    Selector.currentMeshWrapper,
-                    currentMatrix,
-                    lastMatrix
-                );
+                // Apply transformDummy's transformation to the actual mesh object
+                object.position.copy(transformDummy.position);
+                object.quaternion.copy(transformDummy.quaternion);
+                object.scale.copy(transformDummy.scale);
+
+                // Update the mesh's matrices
+                object.updateMatrix();
+                object.updateMatrixWorld(true);
+                
+                this.rebuildHalfedgeStructure(meshWrapper);
+
+                console.log("lksdjflksj")
                 break;
 
             case 'VERTEX':
-                if (this.selectedElement) {
-                    this.geometryUpdater.updateVertexPosition(
-                        this.currentMeshWrapper,
-                        this.selectedElement,
-                        this.transformManager.getTransformDummy().position
+                if (Selector.selectedElement) {
+                    this.updateVertexPosition(
+                        meshWrapper,
+                        Selector.selectedElement,
+                        transformDummy.position
                     );
                 }
                 break;
 
             case 'EDGE':
-                if (this.selectedElement) {
-                    this.geometryUpdater.updateEdgePosition(
-                        this.currentMeshWrapper,
-                        this.selectedElement,
-                        this.transformManager.getTransformDummy().position
+                if (Selector.selectedElement) {
+                    this.updateEdgePosition(
+                        meshWrapper,
+                        Selector.selectedElement,
+                        transformDummy.position
                     );
                 }
                 break;
 
             case 'FACE':
-                if (this.selectedElement) {
-                    this.geometryUpdater.updateFacePosition(
-                        this.currentMeshWrapper,
-                        this.selectedElement,
-                        this.transformManager.getTransformDummy().position
+                if (Selector.selectedElement) {
+                    this.updateFacePosition(
+                        meshWrapper,
+                        Selector.selectedElement,
+                        transformDummy.position
                     );
                 }
                 break;
@@ -57,19 +68,44 @@ class Updater {
     refreshMeshGeometry(meshWrapper) {
         if (!meshWrapper) return;
 
-        // Update the main mesh geometry from the half-edge mesh
-        meshWrapper.object.geometry = Queries.halfedgeToGeometry(meshWrapper);
+        // Update the main mesh geometry from the half-edge structure
+        const newGeometry = Queries.halfedgeToGeometry(meshWrapper.heStruct);
+        
+        // Apply the new geometry to the mesh
+        const oldGeometry = meshWrapper.object.geometry;
+        meshWrapper.object.geometry = newGeometry;
+        
+        // Dispose old geometry to prevent memory leaks
+        if (oldGeometry && oldGeometry.dispose) {
+            oldGeometry.dispose();
+        }
     }
 
     rebuildHalfedgeStructure(meshWrapper) {
         if (!meshWrapper || !meshWrapper.object) return;
 
-        // Get the current geometry (which now includes the transformations)
-        const geometry = meshWrapper.object.geometry;
-
+        // Get the current object and its geometry
+        const object = meshWrapper.object;
+        const geometry = object.geometry.clone();
+        
+        // Apply object's world matrix to geometry
+        geometry.applyMatrix4(object.matrixWorld);
+        
         // Create a new half-edge structure from the transformed geometry
         const struct = new HalfedgeDS();
-        meshWrapper.heMesh = struct.setFromGeometry(geometry);
+        struct.setFromGeometry(geometry, 1e-10);
+        
+        // Update the mesh wrapper with the new structure
+        meshWrapper.heStruct = struct;
+        
+        // Reset object transforms since they're now baked into the geometry
+        // object.position.set(0, 0, 0);
+        // object.quaternion.identity();
+        // object.scale.set(1, 1, 1);
+        // object.updateMatrix();
+        
+        // Refresh the mesh geometry to match the new halfedge structure
+        // this.refreshMeshGeometry(meshWrapper);
     }
 
     updateVertexPosition(meshWrapper, vertex, newPosition) {
@@ -113,7 +149,7 @@ class Updater {
         const currentCenter = new THREE.Vector3();
         let count = 0;
 
-        let startEdge = face.edge;
+        let startEdge = face.halfedge;
         let currentEdge = startEdge;
 
         // Collect all vertices of the face
