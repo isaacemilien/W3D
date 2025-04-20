@@ -164,3 +164,67 @@ body {
 #outliner-content ul li button.selected {
   background-color: var(--maya-highlight);
 }
+
+
+
+/* Properties panel styling with collapsible behavior */
+#properties-container {
+  position: absolute;
+  right: 0;
+  top: var(--maya-shelf-height);
+  width: 240px;
+  height: calc(100% - var(--maya-shelf-height));
+  background-color: var(--maya-dark-grey);
+  color: var(--maya-text);
+  border-left: 1px solid #2a2a2a;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+  padding: 0;
+  overflow-y: auto;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Collapsed state */
+#properties-container.collapsed {
+  transform: translateX(100%);
+}
+
+/* Properties panel content styling */
+#properties-container h3 {
+  background-color: var(--maya-mid-grey);
+  color: var(--maya-text);
+  padding: 8px 12px;
+  margin: 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+#properties-container label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  border-bottom: 1px solid #444;
+  font-size: 0.85rem;
+}
+
+#properties-container input {
+  background-color: var(--maya-light-grey);
+  color: var(--maya-text);
+  border: 1px solid var(--maya-dark-grey);
+  border-radius: 2px;
+  padding: 4px;
+  width: 70px;
+  text-align: right;
+}
+
+#properties-container input:focus {
+  border-color: var(--maya-highlight);
+  outline: none;
+}
+
+#properties-container p {
+  padding: 12px;
+  margin: 0;
+  color: #888;
+  font-style: italic;
+}

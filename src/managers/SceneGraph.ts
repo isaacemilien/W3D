@@ -1,18 +1,12 @@
 import Scene from '../core/Scene';
 import { Halfedge, Vertex, HalfedgeDS, Face } from 'three-mesh-halfedge';
 import { Mesh, Object3D } from 'three'; // Assuming we're using Three.js
-import { MeshWrapper } from './types';
+import { MeshWrapper, SelectionMode } from './types';
+import Selector from './Selector';
 
-type SelectionMode = 'OBJECT' | 'VERTEX' | 'EDGE' | 'FACE';
 
 class SceneGraph {
     private objects: Map<string, MeshWrapper>;
-
-    public selectedObject: boolean;
-    public selectionMode: SelectionMode;
-    public selectedElement: Vertex | Halfedge | Face | null;
-    public currentMeshWrapper: MeshWrapper; // Current { object, heMesh, ... } from SceneGraphManager
-
 
     constructor() {
         this.objects = new Map<string, MeshWrapper>();
@@ -25,6 +19,8 @@ class SceneGraph {
             object,
             heStruct,
         });
+
+        this.updateSceneGraph()
     }
 
     public removeObject(object: Object3D): void {
@@ -41,6 +37,33 @@ class SceneGraph {
 
     public getUnpackedSceneGraphObjects(): Object3D[] {
         return Array.from(this.objects.values()).map(value => value.object);
+    }
+
+    public updateSceneGraph(): void {
+        const sceneGraph = document.getElementById("scene-graph");
+        if (!sceneGraph) return;
+        
+        sceneGraph.innerHTML = "";
+        
+        // Directly iterate over the objects Map entries
+        this.objects.forEach((meshWrapper, uuid) => {
+            const obj = meshWrapper.object;
+            const li = document.createElement("li");
+            const btn = document.createElement("button");
+            
+            li.appendChild(btn);
+            btn.textContent = `${obj.uuid}`;
+            
+            btn.onclick = (event: MouseEvent) => {
+                // stopPropagation to stop onclick event conflicts that raycaster uses
+                event.stopPropagation();
+                console.log("здарова");
+                // SelectionManagerHEDS.selectObject(obj);
+                Selector.setSelectedElement(meshWrapper, null, "OBJECT")
+            };
+            
+            sceneGraph.appendChild(li);
+        });
     }
 }
 

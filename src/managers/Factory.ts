@@ -26,14 +26,9 @@ class Factory {
         const struct = new HalfedgeDS();
         struct.setFromGeometry(geometry, 1e-10);
 
-
-        const bonkersStruct = extrudeFace(struct, struct.faces[9], 1);
-
-        const newGeometry = Queries.halfedgeToGeometry(bonkersStruct);
-
-        const mesh = new THREE.Mesh(newGeometry, material);
+        const mesh = new THREE.Mesh(geometry, material);
         
-        SceneGraph.addObject(mesh as unknown as THREE.Object3D, bonkersStruct);
+        SceneGraph.addObject(mesh as unknown as THREE.Object3D, struct);
     }
 
     static createSphere(radius = 1, widthSegments = 32, heightSegments = 32) {

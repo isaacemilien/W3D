@@ -5,6 +5,7 @@ import Camera from '../core/Camera';
 import Renderer from '../core/Renderer';
 import Updater from './Updater';
 import SceneGraph from './SceneGraph';
+import Selector from './Selector';
 
 class Transform {
     constructor(selectionManager) {
@@ -20,7 +21,7 @@ class Transform {
         this.transformControls = new TransformControls(Camera.camera, Renderer.renderer.domElement);
         Scene.scene.add(this.transformControls.getHelper());
 
-        transformControls.addEventListener('dragging-changed', (event) => {
+        this.transformControls.addEventListener('dragging-changed', (event) => {
             if (!event.value) {
               // Reattach to sync position after move ends
               const object = this.transformControls.object;
@@ -32,8 +33,6 @@ class Transform {
             }
           });
           
-
-
         // Handle transform changes
         this.transformControls.addEventListener('objectChange', this.onControlsChange.bind(this));
 
@@ -44,7 +43,7 @@ class Transform {
         if (!this.transformControls.object || !SceneGraph.currentMeshWrapper) return;
 
         // Get the current mesh object
-        const meshObject = SceneGraph.currentMeshWrapper.object;
+        const meshObject = Selector.currentMeshWrapper.object;
 
         // Apply transformDummy's transformation to the actual mesh object
         meshObject.position.copy(this.transformDummy.position);

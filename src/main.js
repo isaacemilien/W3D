@@ -25,7 +25,6 @@ Scene.addObject(gridHelper);
 
 Factory.createCube();
 
-const selector = new Selector();
 const transform = new Transform()
 
 const updater = new Updater(transform)
@@ -33,16 +32,11 @@ const updater = new Updater(transform)
 function onPointerDown(event) {
     event.preventDefault();
 
-    console.log(selector.pickElement(event, "OBJECT"));
+    // console.log(Selector.getElementAtMousePosition(event, "OBJECT"));
 
-    const result = selector.pickElement(event, "OBJECT");
-
+    const result = Selector.getElementAtMousePosition(event, "OBJECT");
+    
     const { pickedObject, pickedElement, pivotPosition } = result;
-
-    // Set up the current selection
-    SceneGraph.currentMeshWrapper = SceneGraph.getObjectById(pickedObject.uuid);
-    SceneGraph.selectedElement = pickedElement;
-    SceneGraph.selectionMode = 'OBJECT'
 
     // Set up transform controls
     transform.setupTransformControls(
@@ -50,8 +44,6 @@ function onPointerDown(event) {
         pivotPosition,
         pickedObject
     );
-
-    UI.updateObjectPropertiesPanel(SceneGraph.currentMeshWrapper.object);
 }
 
 

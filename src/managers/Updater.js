@@ -4,6 +4,7 @@ import Scene from '../core/Scene';
 import Queries from './Queries';
 import { HalfedgeDS } from 'three-mesh-halfedge';
 import SceneGraph from './SceneGraph';
+import Selector from './Selector';
 
 class Updater {
     constructor() {
@@ -15,7 +16,7 @@ class Updater {
         switch (SceneGraph.selectionMode) {
             case 'OBJECT':
                 this.updateMeshFromTransform(
-                    SceneGraph.currentMeshWrapper,
+                    Selector.currentMeshWrapper,
                     currentMatrix,
                     lastMatrix
                 );

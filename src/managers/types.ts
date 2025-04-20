@@ -15,3 +15,5 @@ export interface MeshWrapper {
      */
     heStruct: HalfedgeDS;
 }
+
+export type SelectionMode = 'OBJECT' | 'VERTEX' | 'EDGE' | 'FACE';
