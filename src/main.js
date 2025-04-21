@@ -11,6 +11,7 @@ import Selector from './managers/Selector';
 
 
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
+import Queries from './managers/Queries';
 
 // Add grid to scene
 const gridHelper = new THREE.GridHelper(10, 10, 0x888888, 0x444444);
@@ -19,13 +20,9 @@ Scene.addObject(gridHelper);
 // Create initial cube
 Factory.createCube();
 
-// Set up event listeners for selection
-function onPointerDown(event) {
-    event.preventDefault();
-    Selector.getElementAtMousePosition(event, Selector.selectionMode);
-}
-
-document.querySelector('canvas').addEventListener('pointerdown', onPointerDown, false);
+Renderer.renderer.domElement.addEventListener('click', (event) => {
+    Selector.handleMouseClick(event);
+});
 
 // Set up transform control mode listeners
 document.getElementById("move").addEventListener("click", () => {

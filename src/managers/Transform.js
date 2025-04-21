@@ -34,28 +34,26 @@ class Transform {
                 if (!this.isUsingDummy) {
                     // Object mode: only rebuild HEDS once at the end
                     this.updater.rebuildHalfedgeStructure(Selector.currentMeshWrapper);
-                    console.log("довладылоав", SceneGraph.getObjectById(Selector.currentMeshWrapper.object.uuid))
                 } else {
                     // Element mode: final update for element transformation
                     this.updater.handleElementTransformUpdate();
                 }
             }
         });
-        
-
 
         // Handle transform changes during dragging
         this.transformControls.addEventListener('objectChange', () => {
             if (this.isUsingDummy) {
-                // Only update elements during dragging if using the dummy
+                // Update the transformDummy matrix before updating elements
+                this.transformDummy.updateMatrixWorld(true);
+                
+                // Update elements during dragging for vertex/edge/face modes
                 this.updater.handleElementTransformUpdate();
             }
-            // For direct object control, no need to do anything during dragging
         });
     }
 
-    // In Transform.js
-    setupTransformControls(selectionMode, object, elementPosition = null) {
+    setupTransformControls(selectionMode, object, elementPosition) {
         // Detach controls first
         this.transformControls.detach();
 
@@ -63,15 +61,27 @@ class Transform {
             // Direct attachment for object mode
             this.transformControls.attach(object);
             this.isUsingDummy = false;
+            
+            // Update object matrices to ensure correct transformation
+            object.updateMatrixWorld(true);
         }
-
         else if (elementPosition) {
-            // Use transform dummy for element modes
-            this.transformDummy.position.copy(elementPosition);
-            this.transformDummy.quaternion.identity();
+            // Ensure the dummy is at scene root level to avoid inheritance issues
+            if (this.transformDummy.parent !== Scene.scene) {
+                Scene.scene.add(this.transformDummy);
+            }
+            
+            // Reset the dummy's rotation and scale before positioning
+            this.transformDummy.rotation.set(0, 0, 0);
             this.transformDummy.scale.set(1, 1, 1);
+            this.transformDummy.position.copy(elementPosition);
+            
+            // Update dummy matrix
             this.transformDummy.updateMatrixWorld(true);
-
+            
+            // Store the initial state for delta calculations
+            this.updateLastMatrix();
+            
             this.transformControls.attach(this.transformDummy);
             this.isUsingDummy = true;
         }

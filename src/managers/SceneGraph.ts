@@ -59,7 +59,7 @@ class SceneGraph {
                 event.stopPropagation();
                 console.log("здарова");
                 // SelectionManagerHEDS.selectObject(obj);
-                Selector.setSelectedElement(meshWrapper, null, "OBJECT")
+                Selector.selectObject(obj);
             };
             
             sceneGraph.appendChild(li);

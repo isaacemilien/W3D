@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { HalfedgeDS} from 'three-mesh-halfedge';
+import { HalfedgeDS, Vertex, Halfedge, Face} from 'three-mesh-halfedge';
 
 /**
  * Interface representing a wrapper for a mesh with its half-edge structure
@@ -17,3 +17,9 @@ export interface MeshWrapper {
 }
 
 export type SelectionMode = 'OBJECT' | 'VERTEX' | 'EDGE' | 'FACE';
+
+export interface PickResult {
+    pickedObject: THREE.Object3D;
+    pickedElement: Vertex | Halfedge | Face | null;
+    pivotPosition: THREE.Vector3 | null;
+}

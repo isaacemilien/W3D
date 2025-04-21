@@ -3,6 +3,8 @@ import Factory from './Factory';
 import Queries from './Queries';
 import Updater from './Updater';
 import Selector from './Selector';
+import Transform from './Transform';
+
 
 class UI {
   constructor() {
@@ -102,32 +104,32 @@ class UI {
       Factory.createCube();
     }, { once: true });
 
-    document.getElementById("add-sphere").addEventListener("click", () => {
-      SceneGraphManager.addObject(PrimitiveFactory.createSphere());
-    });
+    // document.getElementById("add-sphere").addEventListener("click", () => {
+    //   SceneGraphManager.addObject(PrimitiveFactory.createSphere());
+    // });
 
     document.getElementById("move").addEventListener("click", () => {
-      SelectionManagerHEDS.transformControls.setMode("translate")
+      Transform.transformControls.setMode("translate")
     });
 
     document.getElementById("rot").addEventListener("click", () => {
-      SelectionManagerHEDS.transformControls.setMode("rotate")
+      Transform.transformControls.setMode("rotate")
     });
 
     document.getElementById("scale").addEventListener("click", () => {
-      SelectionManagerHEDS.transformControls.setMode("scale")
+      Transform.transformControls.setMode("scale")
     });
 
 
     document.getElementById("object-mode").addEventListener("click", () => {
-      SelectionManagerHEDS.selectionMode = 'OBJECT';
-      SelectionManagerHEDS.transformControls.detach();
-      SelectionManagerHEDS.selectedElement = null;
+      Selector.selectionMode = 'OBJECT';
+      Transform.detachControls();
+      Selector.clearSelection();
     });
     document.getElementById("vertex-mode").addEventListener("click", () => {
-      SelectionManagerHEDS.selectionMode = 'VERTEX';
-      SelectionManagerHEDS.transformControls.detach();
-      SelectionManagerHEDS.selectedElement = null;
+      Selector.selectionMode = 'VERTEX';
+      Transform.detachControls();
+      Selector.clearSelection();
     });
     document.getElementById("edge-mode").addEventListener("click", () => {
       SelectionManagerHEDS.selectionMode = 'EDGE';
@@ -261,48 +263,48 @@ class UI {
     `;
     // Attach event listeners to update HEDS object properties
     document.getElementById("position-x").addEventListener("input", (e) => {
-        object.position.x = parseFloat(e.target.value);
-        SelectionManagerHEDS.updateHEDSFromTransform();
+      object.position.x = parseFloat(e.target.value);
+      SelectionManagerHEDS.updateHEDSFromTransform();
     });
 
     document.getElementById("position-y").addEventListener("input", (e) => {
-        object.position.y = parseFloat(e.target.value);
-        updater.rebuildHalfedgeStructure(meshWrapper);
+      object.position.y = parseFloat(e.target.value);
+      updater.rebuildHalfedgeStructure(meshWrapper);
     });
 
     document.getElementById("position-z").addEventListener("input", (e) => {
-        object.position.z = parseFloat(e.target.value);
-        updater.rebuildHalfedgeStructure(meshWrapper);
+      object.position.z = parseFloat(e.target.value);
+      updater.rebuildHalfedgeStructure(meshWrapper);
     });
 
     document.getElementById("rotation-x").addEventListener("input", (e) => {
-        object.rotation.x = THREE.MathUtils.degToRad(parseFloat(e.target.value));
-        updater.rebuildHalfedgeStructure(meshWrapper);
+      object.rotation.x = THREE.MathUtils.degToRad(parseFloat(e.target.value));
+      updater.rebuildHalfedgeStructure(meshWrapper);
     });
 
     document.getElementById("rotation-y").addEventListener("input", (e) => {
-        object.rotation.y = THREE.MathUtils.degToRad(parseFloat(e.target.value));
-        updater.rebuildHalfedgeStructure(meshWrapper);
+      object.rotation.y = THREE.MathUtils.degToRad(parseFloat(e.target.value));
+      updater.rebuildHalfedgeStructure(meshWrapper);
     });
 
     document.getElementById("rotation-z").addEventListener("input", (e) => {
-        object.rotation.z = THREE.MathUtils.degToRad(parseFloat(e.target.value));
-        updater.rebuildHalfedgeStructure(meshWrapper);
+      object.rotation.z = THREE.MathUtils.degToRad(parseFloat(e.target.value));
+      updater.rebuildHalfedgeStructure(meshWrapper);
     });
 
     document.getElementById("scale-x").addEventListener("input", (e) => {
-        object.scale.x = parseFloat(e.target.value);
-        updater.rebuildHalfedgeStructure(meshWrapper);
+      object.scale.x = parseFloat(e.target.value);
+      updater.rebuildHalfedgeStructure(meshWrapper);
     });
 
     document.getElementById("scale-y").addEventListener("input", (e) => {
-        object.scale.y = parseFloat(e.target.value);
-        updater.rebuildHalfedgeStructure(meshWrapper);
+      object.scale.y = parseFloat(e.target.value);
+      updater.rebuildHalfedgeStructure(meshWrapper);
     });
 
     document.getElementById("scale-z").addEventListener("input", (e) => {
-        object.scale.z = parseFloat(e.target.value);
-        updater.rebuildHalfedgeStructure(meshWrapper);
+      object.scale.z = parseFloat(e.target.value);
+      updater.rebuildHalfedgeStructure(meshWrapper);
     });
   }
 
