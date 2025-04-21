@@ -132,10 +132,10 @@ class UI {
       Selector.clearSelection();
     });
     document.getElementById("edge-mode").addEventListener("click", () => {
-      SelectionManagerHEDS.selectionMode = 'EDGE';
-      SelectionManagerHEDS.transformControls.detach();
-      SelectionManagerHEDS.selectedElement = null;
-    });
+      Selector.selectionMode = 'EDGE';
+      Transform.detachControls();
+      Selector.clearSelection();
+  });
     document.getElementById("face-mode").addEventListener("click", () => {
       SelectionManagerHEDS.selectionMode = 'FACE';
       SelectionManagerHEDS.transformControls.detach();

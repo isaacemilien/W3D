@@ -36,15 +36,15 @@ class Selector {
         this.clearSelection();
         this.isElementCurrentlySelected = object !== null;
         this.currentMeshWrapper = SceneGraph.getObjectById(object.uuid) as MeshWrapper;
-        
+
         if (!this.currentMeshWrapper) return;
-        
+
         // Calculate the center point in world space
         const pivotPosition = this.calculateObjectCenter(this.currentMeshWrapper);
 
         // Make sure the object's matrices are up-to-date
         object.updateMatrixWorld(true);
-        
+
         Transform.setupTransformControls("OBJECT", object, pivotPosition);
     }
 
@@ -72,26 +72,26 @@ class Selector {
     public handleElementSelection(event: MouseEvent): void {
         // Get element at mouse position based on current selection mode
         const pickResult = this.getElementAtMousePosition(event, this.selectionMode);
-        
+
         if (!pickResult) {
             this.clearSelection();
             Transform.detachControls();
             return;
         }
-        
+
         // Store the selected object and element
         this.currentMeshWrapper = SceneGraph.getObjectById(pickResult.pickedObject.uuid);
         this.selectedElement = pickResult.pickedElement;
         this.isElementCurrentlySelected = true;
-        
+
         // Setup transform controls at the appropriate position
         if (pickResult.pivotPosition) {
             // Make sure the object's matrices are up to date
             pickResult.pickedObject.updateMatrixWorld(true);
-            
+
             Transform.setupTransformControls(
-                this.selectionMode, 
-                pickResult.pickedObject, 
+                this.selectionMode,
+                pickResult.pickedObject,
                 pickResult.pivotPosition
             );
         }
@@ -138,7 +138,7 @@ class Selector {
                 // Convert intersection point to local space for vertex comparison
                 const localPoint = intersect.point.clone();
                 pickedObject.worldToLocal(localPoint);
-                
+
                 pickedElement = this.getNearestVertex(localPoint, meshWrapper.heStruct.vertices);
                 if (pickedElement) {
                     // Convert the vertex position back to world space for the transform controls
@@ -151,14 +151,14 @@ class Selector {
                 // Convert intersection point to local space for edge comparison
                 const localEdgePoint = intersect.point.clone();
                 pickedObject.worldToLocal(localEdgePoint);
-                
+
                 pickedElement = this.getNearestEdge(localEdgePoint, meshWrapper.heStruct.halfedges);
                 if (pickedElement) {
                     // Calculate edge midpoint in local space
                     const v1 = pickedElement.vertex.position;
-                    const v2 = pickedElement.next.vertex.position;
+                    const v2 = pickedElement.twin.vertex.position;
                     pivotPosition = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
-                    
+
                     // Convert to world space
                     pickedObject.localToWorld(pivotPosition);
                 }
@@ -169,7 +169,7 @@ class Selector {
                 if (pickedElement) {
                     // Calculate face center in local space
                     pivotPosition = this.calculateFaceCenter(pickedElement);
-                    
+
                     // Convert to world space
                     pickedObject.localToWorld(pivotPosition);
                 }
@@ -260,8 +260,14 @@ class Selector {
         let closest: Halfedge | null = null;
 
         for (const halfedge of halfedges) {
+            // Only process each edge once (skip duplicate twin edges)
+            if (halfedge.twin && halfedge.twin.vertex.id < halfedge.vertex.id) continue;
+
+            // Get the vertices that define this edge
             const v1 = halfedge.vertex.position;
-            const v2 = halfedge.next.vertex.position;
+            const v2 = halfedge.twin.vertex.position;
+
+            // Calculate distance from point to this edge
             const dist = this.pointToSegmentDistance(point, v1, v2);
 
             if (dist < minDist) {
@@ -270,7 +276,9 @@ class Selector {
             }
         }
 
-        return closest;
+        // Apply a reasonable threshold
+        const threshold = 0.1;
+        return minDist < threshold ? closest : null;
     }
 
     /**
@@ -302,11 +310,11 @@ class Selector {
         // For simple quad (or triangulated quad) meshes, determine the face from the face index
         // This is a simplification and may need to be improved for complex meshes
         const faceId = Math.floor(faceIndex / 2); // assuming quads triangulated into 2 triangles
-        
+
         if (faceId >= 0 && faceId < faces.length) {
             return faces[faceId];
         }
-        
+
         return null;
     }
 
@@ -317,7 +325,7 @@ class Selector {
         this.isElementCurrentlySelected = false;
         this.selectedElement = null;
         this.currentMeshWrapper = null;
-        
+
         // Remove any visual selection markers
         if (this.selectionMarker) {
             Scene.scene.remove(this.selectionMarker);
