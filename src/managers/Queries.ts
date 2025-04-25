@@ -59,6 +59,50 @@ class Queries {
         return geometry;
     }
 
+
+    extractPositions(struct: HalfedgeDS): Float32Array {
+        const positions = new Float32Array(struct.vertices.length * 3);
+
+        struct.vertices.forEach((vertex, index) => {
+            positions[index * 3] = vertex.position.x;
+            positions[index * 3 + 1] = vertex.position.y;
+            positions[index * 3 + 2] = vertex.position.z;
+        });
+
+        return positions;
+    }
+
+    extractIndices(struct: HalfedgeDS): number[] {
+        const indices: number[] = [];
+
+        struct.faces.forEach(face => {
+            // Get the first halfedge of the face
+            const halfedge = face.halfedge;
+
+            // For triangular faces, we can simply extract the three vertices
+            const vertexIndices: number[] = [];
+
+            // Iterate through the halfedges of the face
+            for (const he of halfedge.nextLoop()) {
+                // Get the vertex index
+                const vertexIndex = struct.vertices.indexOf(he.vertex);
+                vertexIndices.push(vertexIndex);
+            }
+
+            // Add triangular face indices
+            if (vertexIndices.length >= 3) {
+                indices.push(vertexIndices[0], vertexIndices[1], vertexIndices[2]);
+
+                // For faces with more than 3 vertices, triangulate
+                for (let i = 3; i < vertexIndices.length; i++) {
+                    indices.push(vertexIndices[0], vertexIndices[i - 1], vertexIndices[i]);
+                }
+            }
+        });
+
+        return indices;
+    }
+
 }
 
 export default new Queries();

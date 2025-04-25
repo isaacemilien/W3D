@@ -137,9 +137,9 @@ class UI {
       Selector.clearSelection();
   });
     document.getElementById("face-mode").addEventListener("click", () => {
-      SelectionManagerHEDS.selectionMode = 'FACE';
-      SelectionManagerHEDS.transformControls.detach();
-      SelectionManagerHEDS.selectedElement = null;
+      Selector.selectionMode = 'FACE';
+      Transform.detachControls();
+      Selector.clearSelection();
     });
 
     // Add this to your main keyboard event handler

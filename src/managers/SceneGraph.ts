@@ -1,24 +1,20 @@
 import Scene from '../core/Scene';
 import { Halfedge, Vertex, HalfedgeDS, Face } from 'three-mesh-halfedge';
 import { Mesh, Object3D } from 'three'; // Assuming we're using Three.js
-import { MeshWrapper, SelectionMode } from './types';
-import Selector from './Selector';
+import { Wrapper, SelectionMode } from './types';
 
 
 class SceneGraph {
-    private objects: Map<string, MeshWrapper>;
+    private objects: Map<string, Wrapper>;
 
     constructor() {
-        this.objects = new Map<string, MeshWrapper>();
+        this.objects = new Map<string, Wrapper>();
     }
 
-    public addObject(object: Object3D, heStruct: HalfedgeDS): void {
-        Scene.addObject(object);
+    public addObject(wrapper: Wrapper): void {
+        Scene.addObject(wrapper.render.mesh);
 
-        this.objects.set(object.uuid, {
-            object,
-            heStruct,
-        });
+        this.objects.set(wrapper.render.mesh.uuid, wrapper);
 
         this.updateSceneGraph()
     }
@@ -31,12 +27,12 @@ class SceneGraph {
         }
     }
 
-    public getObjectById(id: string): MeshWrapper | null {
+    public getObjectById(id: string): Wrapper | null {
         return this.objects.get(id) || null;
     }
 
     public getUnpackedSceneGraphObjects(): Object3D[] {
-        return Array.from(this.objects.values()).map(value => value.object);
+        return Array.from(this.objects.values()).map(value => value.render.mesh);
     }
 
     public updateSceneGraph(): void {
@@ -47,7 +43,7 @@ class SceneGraph {
         
         // Directly iterate over the objects Map entries
         this.objects.forEach((meshWrapper, uuid) => {
-            const obj = meshWrapper.object;
+            const obj = meshWrapper.render.mesh;
             const li = document.createElement("li");
             const btn = document.createElement("button");
             
@@ -59,7 +55,7 @@ class SceneGraph {
                 event.stopPropagation();
                 console.log("здарова");
                 // SelectionManagerHEDS.selectObject(obj);
-                Selector.selectObject(obj);
+                // Selector.selectObject(obj);
             };
             
             sceneGraph.appendChild(li);
