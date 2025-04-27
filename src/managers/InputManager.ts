@@ -21,6 +21,7 @@ class InputManager {
 
         if (!hit) {
 
+            // [!] fix remove transform control drag
             Selector.clear();
             return;
         }

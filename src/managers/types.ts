@@ -9,6 +9,7 @@ import { LogicalMesh } from './LogicalMesh';
 export interface Wrapper{
     logical: LogicalMesh
     render: RenderMesh
+    pivot?: THREE.Object3D
 }
 
 export type SelectionMode = 'OBJECT' | 'VERTEX' | 'EDGE' | 'FACE';
