@@ -1,19 +1,19 @@
-// Enhanced Selector.ts with proper coordinate transformations
-
 import * as THREE from 'three';
-import { Halfedge, Vertex, HalfedgeDS, Face } from 'three-mesh-halfedge';
-import {SelectionMode, Wrapper } from './types';
+import { Halfedge, Vertex, Face } from 'three-mesh-halfedge';
+import { SelectionMode, Wrapper } from './types';
 import SceneGraph from './SceneGraph';
-import Transform from './Transform';
-import {Resolver} from './Resolver';
+import Transform, { applyDelta } from './Transform';
+import { Resolver } from './Resolver';
 
-export class Selector {
-    private selectedElement: Vertex | Halfedge | Face | null = null;
-    private selectedObject: THREE.Object3D | null = null;
-    private selectedWrapper: Wrapper | null = null;
-
+class Selector {
+    public selectedElement: Vertex | Halfedge | Face | null = null;
+    public selectedObject: THREE.Object3D | null = null;
+    public selectedWrapper: Wrapper | null = null;
     public selectionMode: SelectionMode = 'OBJECT';
 
+    /**
+     * Select an object or element based on raycaster hit
+     */
     public select(hit: THREE.Intersection) {
         const resolver = new Resolver();
         const result = resolver.getTarget(hit, this.selectionMode);
@@ -25,22 +25,26 @@ export class Selector {
         this.selectedObject = result.pickedObject;
         this.selectedWrapper = result.wrapper;
 
-        Transform.init(this.selectionMode, this.selectedObject);
-
+        // Set up transform controls for the selected object
+        Transform.init(this.selectionMode, this.selectedWrapper);
         
+        // Set up the transform delta callback
         Transform.onTransformDelta = (delta) => {
-            console.log("я любю робин");
-            
-            const current = this.selectedObject;
-            if (!current) return;
-        
-            // applyDelta(delta, current, logicalMesh, renderMesh);
-            // method to apply delta to entire heds obj
-            this.selectedWrapper?.render.updateFrom(this.selectedWrapper.logical);
-
-          };
+            console.log("эксит")
+            if (!this.selectedWrapper) return;
+            // Apply delta transformation to the logical model
+            applyDelta(
+                delta, 
+                this.selectionMode, 
+                this.selectedWrapper, 
+                this.selectedElement
+            );
+        };
     }
 
+    /**
+     * Clear the current selection
+     */
     public clear() {
         this.selectedElement = null;
         this.selectedObject = null;
@@ -48,163 +52,8 @@ export class Selector {
         Transform.detach();
     }
 
-
     /**
-     * Selects an object and sets up the transform controls
-     */
-    // public selectObject(object: THREE.Object3D): void {
-    //     this.clearSelection();
-    //     this.isElementCurrentlySelected = object !== null;
-    //     this.currentMeshWrapper = SceneGraph.getObjectById(object.uuid) as MeshWrapper;
-
-    //     if (!this.currentMeshWrapper) return;
-
-    //     // Calculate the center point in world space
-    //     const pivotPosition = this.calculateObjectCenter(this.currentMeshWrapper);
-
-    //     // Make sure the object's matrices are up-to-date
-    //     object.     (true);
-
-    //     Transform.setupTransformControls("OBJECT", object, pivotPosition);
-    // }
-
-    /**
-     * Handles mouse click for selecting objects or elements
-     */
-    // public handleMouseClick(event: MouseEvent): void {
-    //     // Handle selection based on current mode
-    //     if (this.selectionMode === 'OBJECT') {
-    //         const result = this.getElementAtMousePosition(event, 'OBJECT');
-    //         if (result && result.pickedObject) {
-    //             this.selectObject(result.pickedObject);
-    //         } else {
-    //             this.clearSelection();
-    //             Transform.detachControls();
-    //         }
-    //     } else {
-    //         this.handleElementSelection(event);
-    //     }
-    // }
-
-    /**
-     * Handles selection of vertices, edges, or faces
-     */
-    // public handleElementSelection(event: MouseEvent): void {
-    //     // Get element at mouse position based on current selection mode
-    //     const pickResult = this.getElementAtMousePosition(event, this.selectionMode);
-
-    //     if (!pickResult) {
-    //         this.clearSelection();
-    //         Transform.detachControls();
-    //         return;
-    //     }
-
-    //     // Store the selected object and element
-    //     this.currentMeshWrapper = SceneGraph.getObjectById(pickResult.pickedObject.uuid);
-    //     this.selectedElement = pickResult.pickedElement;
-    //     this.isElementCurrentlySelected = true;
-
-    //     // Setup transform controls at the appropriate position
-    //     if (pickResult.pivotPosition) {
-    //         // Make sure the object's matrices are up to date
-    //         pickResult.pickedObject.updateMatrixWorld(true);
-
-    //         Transform.setupTransformControls(
-    //             this.selectionMode,
-    //             pickResult.pickedObject,
-    //             pickResult.pivotPosition
-    //         );
-    //     }
-    // }
-
-    /**
-     * Gets the element at the current mouse position
-     */
-    // public getElementAtMousePosition(event: MouseEvent, selectionMode: SelectionMode): PickResult | null {
-    //     // Get normalized device coordinates
-    //     const rect = Renderer.renderer.domElement.getBoundingClientRect();
-    //     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    //     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-    //     // Set up raycaster
-    //     this.raycaster.setFromCamera(this.mouse, Camera.camera);
-
-    //     // Get intersections with objects in the scene
-    //     const intersects = this.raycaster.intersectObjects(
-    //         SceneGraph.getUnpackedSceneGraphObjects(), true
-    //     );
-
-    //     // On hit nothing
-    //     if (intersects.length === 0) return null;
-
-    //     // Get the first intersection
-    //     const intersect = intersects[0];
-    //     const pickedObject = intersect.object;
-
-    //     // Get the mesh wrapper from SceneGraph
-    //     const meshWrapper = SceneGraph.getObjectById(pickedObject.uuid) as MeshWrapper;
-    //     if (!meshWrapper) return null;
-
-    //     let pickedElement: Vertex | Halfedge | Face | null = null;
-    //     let pivotPosition: THREE.Vector3 | null = null;
-
-    //     // Handle selection based on mode
-    //     switch (selectionMode) {
-    //         case 'OBJECT':
-    //             pivotPosition = this.calculateObjectCenter(meshWrapper);
-    //             break;
-
-    //         case 'VERTEX':
-    //             // Convert intersection point to local space for vertex comparison
-    //             const localPoint = intersect.point.clone();
-    //             pickedObject.worldToLocal(localPoint);
-
-    //             pickedElement = this.getNearestVertex(localPoint, meshWrapper.heStruct.vertices);
-    //             if (pickedElement) {
-    //                 // Convert the vertex position back to world space for the transform controls
-    //                 pivotPosition = pickedElement.position.clone();
-    //                 pickedObject.localToWorld(pivotPosition);
-    //             }
-    //             break;
-
-    //         case 'EDGE':
-    //             // Convert intersection point to local space for edge comparison
-    //             const localEdgePoint = intersect.point.clone();
-    //             pickedObject.worldToLocal(localEdgePoint);
-
-    //             pickedElement = this.getNearestEdge(localEdgePoint, meshWrapper.heStruct.halfedges);
-    //             if (pickedElement) {
-    //                 // Calculate edge midpoint in local space
-    //                 const v1 = pickedElement.vertex.position;
-    //                 const v2 = pickedElement.twin.vertex.position;
-    //                 pivotPosition = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
-
-    //                 // Convert to world space
-    //                 pickedObject.localToWorld(pivotPosition);
-    //             }
-    //             break;
-
-    //         case 'FACE':
-    //             pickedElement = this.getIntersectedFace(intersect.faceIndex, meshWrapper.heStruct.faces);
-    //             if (pickedElement) {
-    //                 // Calculate face center in local space
-    //                 pivotPosition = this.calculateFaceCenter(pickedElement);
-
-    //                 // Convert to world space
-    //                 pickedObject.localToWorld(pivotPosition);
-    //             }
-    //             break;
-    //     }
-
-    //     return {
-    //         pickedObject,
-    //         pickedElement,
-    //         pivotPosition
-    //     };
-    // }
-
-    /**
-     * Calculates the center of a face in local space
+     * Calculate the center of a face in local space
      */
     private calculateFaceCenter(face: Face): THREE.Vector3 {
         const center = new THREE.Vector3();
@@ -226,33 +75,6 @@ export class Selector {
 
         return center;
     }
-
-    /**
-     * Gets the face that corresponds to the intersected triangle
-     */
-    private getIntersectedFace(faceIndex: number, faces: Array<Face>): Face | null {
-        if (!faces || faces.length === 0 || faceIndex === undefined) return null;
-
-        // For simple quad (or triangulated quad) meshes, determine the face from the face index
-        // This is a simplification and may need to be improved for complex meshes
-        const faceId = Math.floor(faceIndex / 2); // assuming quads triangulated into 2 triangles
-
-        if (faceId >= 0 && faceId < faces.length) {
-            return faces[faceId];
-        }
-
-        return null;
-    }
-
-    // /**
-    //  * Clears the current selection
-    //  */
-    // public clearSelection(): void {
-    //     this.isElementCurrentlySelected = false;
-    //     this.selectedElement = null;
-    //     this.currentMeshWrapper = null;
-    //     Transform.detachControls();
-    // }
 }
 
-export default new Selector()
+export default new Selector();

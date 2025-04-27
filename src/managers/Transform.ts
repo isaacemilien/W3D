@@ -3,67 +3,104 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import Scene from '../core/Scene';
 import Camera from '../core/Camera';
 import Renderer from '../core/Renderer';
-import SceneGraph from './SceneGraph';
-import Selector from './Selector';
 import { SelectionMode, Wrapper, PickResult } from './types';
-import { RenderMesh } from './RenderMesh';
-import { LogicalMesh } from './LogicalMesh';
-import { Halfedge, Vertex, HalfedgeDS, Face } from 'three-mesh-halfedge';
+import { Halfedge, Vertex, Face } from 'three-mesh-halfedge';
 
 class Transform {
     public onTransformDelta: (delta: THREE.Matrix4) => void = () => { };
     private control: TransformControls;
     private _attachedObject: THREE.Object3D | null = null;
-    private transformDummy: THREE.Object3D;
+    private _origMatrix: THREE.Matrix4 | null = null;
+    private _wrapper: Wrapper | null = null;
 
-    constructor(
-    ) {
-        this.transformDummy = new THREE.Object3D;
+    constructor() {
         this.control = new TransformControls(Camera.camera, Renderer.renderer.domElement);
         Scene.addObject(this.control.getHelper());
-        Scene.addObject(this.transformDummy);
 
-        // on drag-end: capture delta, reset, emit
+        // Set up the dragging-changed event handler
         this.control.addEventListener('dragging-changed', (event) => {
-            // Inform your orbit controls to enable/disable
+            // Enable/disable orbit controls during dragging
             if (Camera.controls) {
                 Camera.controls.enabled = !event.value;
             }
 
-            if (!event.value && this._attachedObject) {
-                console.log("финк");
-
-                // finished dragging
-                const delta = this._computeDeltaMatrix();
-                // reset object's local matrix
-                this._attachedObject.matrix.copy(this._origMatrix!);
-                this._attachedObject.matrixAutoUpdate = false;
-                // notify
-                this.onTransformDelta(delta);
+            if (event.value) {
+                // Started dragging - store original state
+                this._storeOriginalState();
+            } else if (this._attachedObject && this._wrapper) {
+                console.log("Transformation complete")
+                // Finished dragging - apply the final transformation
+                this._applyFinalTransform();
             }
         });
-
-        // keep track of world->local original matrix
-        this._origMatrix = null;
     }
 
-    private _origMatrix: THREE.Matrix4 | null;
+    /**
+     * Store the original state before transformation starts
+     */
+    private _storeOriginalState() {
+        if (!this._attachedObject) return;
 
-    private _computeDeltaMatrix(): THREE.Matrix4 {
-        // current matrix vs original
-        const curr = this._attachedObject!.matrix.clone();
-        const invOrig = new THREE.Matrix4().copy(this._origMatrix!).invert();
-        return new THREE.Matrix4().multiplyMatrices(curr, invOrig);
+        // Make sure matrices are up to date
+        this._attachedObject.updateMatrix();
+
+        // Store a copy of the original matrix
+        this._origMatrix = this._attachedObject.matrix.clone();
+
+        console.log("Original matrix stored");
+    }
+
+    /**
+     * Apply the final transformation to the logical mesh and rebuild
+     */
+    private _applyFinalTransform() {
+        if (!this._attachedObject || !this._wrapper || !this._origMatrix) return;
+
+        /* ------------------------------------------------------------------
+           1.  Matrices *before* we touch anything
+        ------------------------------------------------------------------ */
+        this._attachedObject.updateMatrixWorld(true);
+        const finalWorldPos = new THREE.Vector3();
+        this._attachedObject.getWorldPosition(finalWorldPos);   // where the user dropped it
+
+        const delta = new THREE.Matrix4()
+            .multiplyMatrices(
+                this._origMatrix.clone().invert(),   //  M_orig⁻¹
+                this._attachedObject.matrix          //· M_current
+            );
+
+        const deltaNoT = delta.clone().setPosition(0, 0, 0);   // strip translation
+        this.onTransformDelta(deltaNoT);                       // update logical mesh
+
+        this._attachedObject.position.set(0, 0, 0);
+        this._attachedObject.rotation.set(0, 0, 0);
+        this._attachedObject.scale.set(1, 1, 1);
+        this._attachedObject.updateMatrixWorld(true);
+
+        if (this._attachedObject.parent) {
+            this._attachedObject.parent.worldToLocal(finalWorldPos);
+        }
+        this._attachedObject.position.copy(finalWorldPos);
+        this._attachedObject.updateMatrixWorld(true);          // gizmo sees it
+
+        this.control.detach();
+        this.control.attach(this._attachedObject);
+
+        this._origMatrix = null;   // ready for the next drag
     }
 
     /**
      * Attach the controls to a mesh/object to be transformed
      */
-    public attach(object: THREE.Object3D) {
+    public attach(object: THREE.Object3D, wrapper: Wrapper) {
+        // Store references
         this._attachedObject = object;
-        object.updateMatrix();
-        this._origMatrix = object.matrix.clone();
-        object.matrixAutoUpdate = false;
+        this._wrapper = wrapper;
+
+        // Enable matrix auto-updates for smooth dragging
+        object.matrixAutoUpdate = true;
+
+        // Attach the transform controls to the object
         this.control.attach(object);
     }
 
@@ -71,8 +108,11 @@ class Transform {
      * Detach controls from any object
      */
     public detach() {
-        this.control.detach();
+        if (this.control) {
+            this.control.detach();
+        }
         this._attachedObject = null;
+        this._wrapper = null;
         this._origMatrix = null;
     }
 
@@ -83,28 +123,25 @@ class Transform {
         this.control.setMode(mode);
     }
 
-    public init(selectionMode: SelectionMode, object: THREE.Object3D): void {
+    /**
+     * Initialize transform controls based on selection mode and object
+     */
+    public init(selectionMode: SelectionMode, wrapper: Wrapper | null): void {
         this.detach();
 
-        if (selectionMode === 'OBJECT' && object) {
-            this.attach(object);
-            object.updateMatrixWorld(true);
-            console.log("инит");
-        }
-        // } else {
-        //     this.transformDummy.rotation.set(0, 0, 0);
-        //     this.transformDummy.scale.set(1, 1, 1);
-        //     this.transformDummy.position.copy(elementPosition as THREE.Vector3);
-        //     this.transformDummy.updateMatrixWorld(true);
+        if (!wrapper) return;
 
-        //     this.attach(this.transformDummy);
-        // }
+        if (selectionMode === 'OBJECT') {
+            // For object mode, attach controls to the entire mesh
+            this.attach(wrapper.render.mesh, wrapper);
+        } else if (selectionMode === 'VERTEX' || selectionMode === 'EDGE' || selectionMode === 'FACE') {
+            // For sub-object selection modes, you'd need custom handling here
+        }
     }
 }
 
-
 /**
- * applyDelta: collapse per-mode branches into one
+ * Apply delta transformation to the logical model based on selection mode
  */
 export function applyDelta(
     delta: THREE.Matrix4,
@@ -112,61 +149,29 @@ export function applyDelta(
     wrapper: Wrapper,
     selectedElement: Vertex | Halfedge | Face | null
 ) {
-    switch (selectionMode) {
-        case "OBJECT": {
-            // apply transform to whole mesh
-            // wrapper.logical.applyMatrix(delta);
-            break;
-        }
-        case 'VERTEX': {
-            // const v = selectedElement as Vertex;
-            // v.position.applyMatrix4(delta);
-            break;
-        }
-        // case 'EDGE': {
-        //     const edge = wrapper.logical.getEdge(target.id);
-        //     applyPivotTransform([edge.v1, edge.v2], delta);
-        //     break;
-        // }
-        // case 'FACE': {
-        //     const face = wrapper.logical.getFace(target.id);
-        //     applyPivotTransform(face.vertices, delta);
-        //     break;
-        // }
+    if (!wrapper) {
+        console.error("Cannot apply delta: wrapper is null");
+        return;
     }
 
-    // finally update the render mesh from logical data
+    switch (selectionMode) {
+        case "OBJECT": {
+            // Apply transform to all vertices in the logical mesh
+            for (const vertex of wrapper.logical.struct.vertices) {
+                vertex.position.applyMatrix4(delta);
+            }
+            break;
+        }
+        // Add cases for VERTEX, EDGE, FACE when implementing sub-object selections
+    }
+
+    // Update the render mesh from the logical data
     wrapper.render.updateFrom(wrapper.logical);
+
+    // Ensure bounding volumes are updated for proper raycasting
+    const geometry = wrapper.render.mesh.geometry;
+    geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
 }
-
-/**
- * Helper: compute centroid for pivot
- */
-function computeCentroid(
-    points: Array<{ position: THREE.Vector3 }>
-): THREE.Vector3 {
-    const c = new THREE.Vector3(0, 0, 0);
-    points.forEach(p => c.add(p.position));
-    return c.divideScalar(points.length);
-}
-
-/**
- * Helper: apply delta around pivot
- */
-function applyPivotTransform(
-    verts: Array<{ position: THREE.Vector3 }>,
-    delta: THREE.Matrix4
-) {
-    const pivot = computeCentroid(verts);
-    verts.forEach(v => {
-        v.position
-            .sub(pivot)
-            .applyMatrix4(delta)
-            .add(pivot);
-    });
-}
-
-
-
 
 export default new Transform();

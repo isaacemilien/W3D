@@ -4,7 +4,7 @@ import { HalfedgeDS, Face, Vertex, Halfedge } from 'three-mesh-halfedge';
 export class LogicalMesh {
     public struct: HalfedgeDS;
     constructor(struct: HalfedgeDS) { this.struct = struct; }
-  
+    
     /**
      * Creates a cube logical mesh with the specified size
      * 

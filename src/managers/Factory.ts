@@ -1,35 +1,62 @@
-import * as THREE from 'three'
-import { HalfedgeDS } from 'three-mesh-halfedge';
-import Queries from './Queries';
-import SceneGraph from './SceneGraph';
-import { extrudeFace } from './Operations';
+import * as THREE from 'three';
 import { Wrapper } from './types';
 import { LogicalMesh } from './LogicalMesh';
 import { RenderMesh } from './RenderMesh';
-import Scene from '../core/Scene';
+import SceneGraph from './SceneGraph';
 
 class Factory {
-
+    /**
+     * Create a cube mesh and add it to the scene
+     */
     static createCube(): Wrapper {
+        // Create the logical mesh (authoritative data)
         const logical = LogicalMesh.createCube(1);
-        
-        const material = new THREE.MeshStandardMaterial({ color: 0x6699ff, metalness: 0, roughness: 0.5 });
-        const render = new RenderMesh(material)
+
+        // Create the render mesh (visual representation)
+        const material = new THREE.MeshStandardMaterial({
+            color: 0x6699ff,
+            metalness: 0,
+            roughness: 0.5
+        });
+        const render = new RenderMesh(material);
+
+        // Update the render mesh from the logical data
         render.updateFrom(logical);
 
-        return {logical, render}
+        // Create the wrapper
+        const wrapper = { logical, render };
+
+        // Add to scene graph
+        SceneGraph.addObject(wrapper);
+
+        return wrapper;
     }
 
-    // static createCube() {
-    //     const geometry = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
-    //     const material = new THREE.MeshStandardMaterial({ color: 0x6699ff, metalness: 0, roughness: 0.5 });
+    // /**
+    //  * Create a sphere mesh and add it to the scene
+    //  */
+    // static createSphere(radius: number = 0.5, segments: number = 16): Wrapper {
+    //     // Create the logical mesh
+    //     const logical = LogicalMesh.createSphere(radius, segments);
 
-    //     const struct = new HalfedgeDS();
-    //     struct.setFromGeometry(geometry, 1e-10);
+    //     // Create the render mesh
+    //     const material = new THREE.MeshStandardMaterial({ 
+    //         color: 0x66cc99, 
+    //         metalness: 0, 
+    //         roughness: 0.5 
+    //     });
+    //     const render = new RenderMesh(material);
 
-    //     const mesh = new THREE.Mesh(geometry, material);
-        
-    //     SceneGraph.addObject(mesh as unknown as THREE.Object3D, struct);
+    //     // Update the render mesh from the logical data
+    //     render.updateFrom(logical);
+
+    //     // Create the wrapper
+    //     const wrapper = { logical, render };
+
+    //     // Add to scene graph
+    //     SceneGraph.addObject(wrapper);
+
+    //     return wrapper;
     // }
 }
 
