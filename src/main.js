@@ -3,7 +3,7 @@ import Scene from './core/Scene';
 import Renderer from './core/Renderer';
 import Camera from './core/Camera';
 import Lighting from './core/Lighting';
-// import UI from './managers/UI';
+import UI from './managers/UI';
 import SceneGraph from './managers/SceneGraph';
 import { HalfedgeDS } from 'three-mesh-halfedge';
 import Factory from './managers/Factory';

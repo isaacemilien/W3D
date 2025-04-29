@@ -120,26 +120,26 @@ class UI {
       Transform.transformControls.setMode("scale")
     });
 
-
+    // add foreach "mode" generate
     document.getElementById("object-mode").addEventListener("click", () => {
       Selector.selectionMode = 'OBJECT';
-      Transform.detachControls();
-      Selector.clearSelection();
+      Transform.detach();
+      Selector.clear();
     });
     document.getElementById("vertex-mode").addEventListener("click", () => {
       Selector.selectionMode = 'VERTEX';
-      Transform.detachControls();
-      Selector.clearSelection();
+      Transform.detach();
+      Selector.clear();
     });
     document.getElementById("edge-mode").addEventListener("click", () => {
       Selector.selectionMode = 'EDGE';
-      Transform.detachControls();
-      Selector.clearSelection();
+      Transform.detach();
+      Selector.clear();
   });
     document.getElementById("face-mode").addEventListener("click", () => {
       Selector.selectionMode = 'FACE';
-      Transform.detachControls();
-      Selector.clearSelection();
+      Transform.detach();
+      Selector.clear();
     });
 
     // Add this to your main keyboard event handler

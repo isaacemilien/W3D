@@ -13,6 +13,9 @@ class Transform {
     private _origMatrix: THREE.Matrix4 | null = null;
     private _wrapper: Wrapper | null = null;
     private _selectionMode: SelectionMode = 'OBJECT';
+    public selectedElement: Vertex | Halfedge | Face | null = null;
+
+    private proxy: THREE.Object3D;
 
     constructor() {
         this.control = new TransformControls(
@@ -21,21 +24,31 @@ class Transform {
         );
         Scene.addObject(this.control.getHelper());
 
-        this.control.addEventListener('dragging-changed', (event) => {
-            if (Camera.controls) Camera.controls.enabled = !event.value;
-            if (event.value) this._storeOriginalState();
-            else this._applyFinalTransform();
-        });
+        this.proxy = new THREE.Object3D();
+        this.proxy.visible = false;
+
+        Scene.addObject(this.proxy);
+
+        this.setupListeners();
     }
 
-    public init(selectionMode: SelectionMode, wrapper: Wrapper | null) {
+    public init(selectionMode: SelectionMode, wrapper: Wrapper | null, pivotPosition: THREE.Vector3Like | null, selectedElement: Vertex | Halfedge | Face | null = null) {
         if (!wrapper) return;
         this.detach();
-        this._selectionMode = selectionMode;  
+        this._selectionMode = selectionMode;
 
         switch (selectionMode) {
             case 'OBJECT':
                 this.attach(wrapper.render.mesh, wrapper);
+                break;
+            default:
+                console.log("something other than object mode, must attach proxy")
+                // assign proxy pos
+                this.proxy.position.copy(pivotPosition as THREE.Vector3);
+                this.control.attach(this.proxy)
+
+                this._wrapper = wrapper;
+                this.selectedElement = selectedElement;
                 break;
         }
     }
@@ -53,7 +66,7 @@ class Transform {
 
         pivot.matrixAutoUpdate = true;
 
-        this._attachedObject = pivot; 
+        this._attachedObject = pivot;
         this._wrapper = wrapper;
         this.control.attach(pivot);
         this.control.setSpace('local');
@@ -64,6 +77,31 @@ class Transform {
         this._attachedObject = null;
         this._wrapper = null;
         this._origMatrix = null;
+    }
+
+    private setupListeners() {
+        this.control.addEventListener('objectChange', () => {
+            if (this._selectionMode === "OBJECT") return;
+            console.log("lksjdflkskjflskjfd");
+            
+
+            // // Update logical mesh vertex position
+            // this.selectedVertex.position.copy(this.proxy.position);
+
+            // // Optional: trigger post-move update (e.g., normals)
+            // this.logicalMesh.updateAfterVertexMove?.(this.selectedVertex);
+
+            // // Update the render mesh immediately
+            // this.renderMesh.updateVertexPosition(this.selectedVertex);
+
+            this.updateVertexPosition(this._wrapper as Wrapper, this.selectedElement as Vertex, this.proxy.position)
+        });
+
+        this.control.addEventListener('dragging-changed', (event) => {
+            if (Camera.controls) Camera.controls.enabled = !event.value;
+            if (event.value) this._storeOriginalState();
+            else this._applyFinalTransform();
+        });
     }
 
     private _storeOriginalState() {
@@ -124,12 +162,37 @@ class Transform {
         this.control.attach(this._attachedObject);
         this.control.setSpace('local');
 
-        this._origMatrix = null; 
+        this._origMatrix = null;
     }
 
 
     public setMode(mode: 'translate' | 'rotate' | 'scale') {
         this.control.setMode(mode);
+    }
+
+
+
+    /**
+     * Updates a vertex position properly accounting for object transformations
+     */
+    private updateVertexPosition(wrapper: Wrapper, vertex: Vertex, newWorldPosition: THREE.Vector3) {
+        if (!wrapper || !vertex) return;
+
+        console.log("lkskdjf;sjf;lkdjf;slkjf");
+        
+        const object = wrapper.render.mesh;
+
+        // Get the correct world-to-local conversion by considering object's world matrix
+        const objectWorldInverse = new THREE.Matrix4().copy(object.matrixWorld).invert();
+
+        // Convert the world position to local space
+        const localPosition = newWorldPosition.clone().applyMatrix4(objectWorldInverse);
+
+        // Update the vertex position
+        vertex.position.copy(localPosition);
+
+        // Refresh the mesh geometry to reflect the changes
+        wrapper.render.updateFrom(wrapper.logical);
     }
 }
 

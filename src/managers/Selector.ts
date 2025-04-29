@@ -26,7 +26,7 @@ class Selector {
         this.selectedWrapper = result.wrapper;
 
         // Set up transform controls for the selected object
-        Transform.init(this.selectionMode, this.selectedWrapper);
+        Transform.init(this.selectionMode, this.selectedWrapper, result.pivotPosition, this.selectedElement);
         
         // Set up the transform delta callback
         Transform.onTransformDelta = (delta) => {
