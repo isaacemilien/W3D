@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import { Halfedge, Vertex, Face } from 'three-mesh-halfedge';
+import { Halfedge, Vertex, Face, HalfedgeDS } from 'three-mesh-halfedge';
 import { SelectionMode, Wrapper } from './types';
 import SceneGraph from './SceneGraph';
 import Transform, { applyDelta } from './Transform';
 import { Resolver } from './Resolver';
+import { extrudeFace } from './extrudeFace';
 
 class Selector {
     public selectedElement: Vertex | Halfedge | Face | null = null;
@@ -52,29 +53,13 @@ class Selector {
         Transform.detach();
     }
 
-    /**
-     * Calculate the center of a face in local space
-     */
-    private calculateFaceCenter(face: Face): THREE.Vector3 {
-        const center = new THREE.Vector3();
-        let count = 0;
-
-        // Traverse the face's edges to collect vertices
-        let startEdge = face.halfedge;
-        let currentEdge = startEdge;
-
-        do {
-            center.add(currentEdge.vertex.position);
-            count++;
-            currentEdge = currentEdge.next;
-        } while (currentEdge !== startEdge);
-
-        if (count > 0) {
-            center.divideScalar(count);
+    public extrudeFace(){
+        if(this.selectedElement != null && this.selectionMode === "FACE"){
+            extrudeFace(this.selectedWrapper?.logical.struct as HalfedgeDS, this.selectedElement as Face, 1)
+            this.selectedWrapper?.render.updateFrom(this.selectedWrapper.logical);
         }
-
-        return center;
     }
+
 }
 
 export default new Selector();

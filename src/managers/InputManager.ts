@@ -54,6 +54,13 @@ class InputManager {
                 event.preventDefault();
                 break;
 
+            case 'e':
+                console.log("EEEEEEEEEEEEEEE");
+                // temp while getting extrude back again
+                Selector.extrudeFace();
+                event.preventDefault();
+                break;
+
             // Selection modes
             case '1':
                 document.getElementById('object-mode')?.click();
