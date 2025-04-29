@@ -82,8 +82,13 @@ class Transform {
     private setupListeners() {
         this.control.addEventListener('objectChange', () => {
             if (this._selectionMode === "OBJECT") return;
-            console.log("lksjdflkskjflskjfd");
-            
+            else if (this._selectionMode === "VERTEX") {
+                this.updateVertexPosition(this._wrapper as Wrapper, this.selectedElement as Vertex, this.proxy.position);
+            } else if (this._selectionMode === "EDGE") {
+
+                console.log("lksjdflkskjflskjfd");
+                this.updateEdgePosition(this._wrapper as Wrapper, this.selectedElement as Halfedge, this.proxy.position);
+            }
 
             // // Update logical mesh vertex position
             // this.selectedVertex.position.copy(this.proxy.position);
@@ -94,7 +99,6 @@ class Transform {
             // // Update the render mesh immediately
             // this.renderMesh.updateVertexPosition(this.selectedVertex);
 
-            this.updateVertexPosition(this._wrapper as Wrapper, this.selectedElement as Vertex, this.proxy.position)
         });
 
         this.control.addEventListener('dragging-changed', (event) => {
@@ -179,7 +183,7 @@ class Transform {
         if (!wrapper || !vertex) return;
 
         console.log("lkskdjf;sjf;lkdjf;slkjf");
-        
+
         const object = wrapper.render.mesh;
 
         // Get the correct world-to-local conversion by considering object's world matrix
@@ -192,6 +196,39 @@ class Transform {
         vertex.position.copy(localPosition);
 
         // Refresh the mesh geometry to reflect the changes
+        wrapper.render.updateFrom(wrapper.logical);
+    }
+
+
+
+    /**
+     * Updates an edge position properly accounting for object transformations
+     */
+    private updateEdgePosition(wrapper: Wrapper, edge: Halfedge, newMidpoint: THREE.Vector3) {
+        if (!wrapper || !edge) return;
+
+        const object = wrapper.render.mesh;
+
+        // Get the two vertices of the edge
+        const v1 = edge.vertex;
+        const v2 = edge.twin.vertex;
+
+        // Calculate the current midpoint in local space
+        const currentMidpointLocal = new THREE.Vector3()
+            .addVectors(v1.position, v2.position)
+            .multiplyScalar(0.5);
+
+        // Convert to world space for comparison
+        const currentMidpointWorld = currentMidpointLocal.clone()
+            .applyMatrix4(object.matrixWorld);
+
+        const v1w = object.localToWorld(v1.position.clone());
+        const v2w = object.localToWorld(v2.position.clone());
+        const deltaW = new THREE.Vector3().subVectors(newMidpoint, currentMidpointWorld);
+        v1.position.copy(object.worldToLocal(v1w.add(deltaW)));
+        v2.position.copy(object.worldToLocal(v2w.add(deltaW)));
+
+        // Refresh the mesh geometry
         wrapper.render.updateFrom(wrapper.logical);
     }
 }
