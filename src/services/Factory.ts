@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { Wrapper } from './types';
-import { LogicalMesh } from './LogicalMesh';
-import { RenderMesh } from './RenderMesh';
+import { Wrapper } from '../data/types';
+import { LogicalMesh } from '../data/LogicalMesh';
+import { RenderMesh } from '../data/RenderMesh';
 import SceneGraph from './SceneGraph';
 
 class Factory {

@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { Wrapper, SelectionMode } from './types';
 
 
-import Selector from './Selector';
+import Selector from '../managers/Selector';
 
 class SceneGraph {
     private objects: Map<string, Wrapper>;

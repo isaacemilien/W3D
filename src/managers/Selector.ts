@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { Halfedge, Vertex, Face, HalfedgeDS } from 'three-mesh-halfedge';
-import { SelectionMode, Wrapper } from './types';
-import SceneGraph from './SceneGraph';
+import { SelectionMode, Wrapper } from '../data/types';
+import SceneGraph from '../services/SceneGraph';
 import Transform, { applyDelta } from './Transform';
-import { Resolver } from './Resolver';
-import { extrudeFace } from './extrudeFace';
+import { Resolver } from '../services/Resolver';
+import { extrudeFace } from '../operations/extrudeFace';
 
 class Selector {
     public selectedElement: Vertex | Halfedge | Face | null = null;

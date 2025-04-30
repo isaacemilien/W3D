@@ -1,5 +1,5 @@
 import Selector from "./Selector";
-import Picker from "./Picker";
+import Picker from "../services/Picker";
 import Transform from "./Transform";
 
 class InputManager {

@@ -3,7 +3,7 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import Scene from '../core/Scene';
 import Camera from '../core/Camera';
 import Renderer from '../core/Renderer';
-import { SelectionMode, Wrapper } from './types';
+import { SelectionMode, Wrapper } from '../data/types';
 import { Halfedge, Vertex, Face } from 'three-mesh-halfedge';
 
 class Transform {

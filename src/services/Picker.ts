@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import SceneGraph from './SceneGraph';
+import SceneGraph from '../services/SceneGraph';
 import Camera  from '../core/Camera';
 import Renderer from '../core/Renderer';
 

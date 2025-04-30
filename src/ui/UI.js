@@ -1,9 +1,8 @@
 import * as THREE from 'three'
-import Factory from './Factory';
-import Queries from './Queries';
-import Updater from './Updater';
-import Selector from './Selector';
-import Transform from './Transform';
+import Factory from '../services/Factory';
+// import Updater from '../services/Updater';
+import Selector from '../managers/Selector';
+import Transform from '../managers/Transform';
 
 
 class UI {

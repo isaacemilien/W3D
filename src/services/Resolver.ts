@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import SceneGraph from './SceneGraph';
 import { Halfedge, Vertex, Face } from 'three-mesh-halfedge';
-import { PickResult, SelectionMode } from './types';
-import { Wrapper } from './types';
+import { PickResult, SelectionMode, Wrapper } from '../data/types';
 
 export class Resolver {
     /**

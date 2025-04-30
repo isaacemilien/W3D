@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { LogicalMesh } from './LogicalMesh';
 import { HalfedgeDS, Face, Vertex } from 'three-mesh-halfedge';
-import Queries from './Queries';
+import Queries from '../services/Queries';
 
 export class RenderMesh {
     public mesh: THREE.Mesh;

@@ -3,14 +3,14 @@ import Scene from './core/Scene';
 import Renderer from './core/Renderer';
 import Camera from './core/Camera';
 import Lighting from './core/Lighting';
-import UI from './managers/UI';
-import SceneGraph from './managers/SceneGraph';
+import UI from './ui/UI';
+import SceneGraph from './services/SceneGraph';
 import { HalfedgeDS } from 'three-mesh-halfedge';
-import Factory from './managers/Factory';
+import Factory from './services/Factory';
 // import Selector from './managers/Selector';
 
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import Queries from './managers/Queries';
+import Queries from './services/Queries';
 import InputManager from './managers/InputManager';
 
 
