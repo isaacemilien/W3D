@@ -4,9 +4,10 @@ import Factory from '../services/Factory';
 import Selector from '../managers/Selector';
 import Transform from '../managers/Transform';
 
-
 class UI {
   constructor() {
+    // Set up OBJ import functionality
+    this.setupImportButton();
 
     // Add the Maya-style toolbar functionality
     const modeButtons = document.querySelectorAll('.mode-button');
@@ -35,77 +36,10 @@ class UI {
     setupToggleGroup(transformButtons);
     setupToggleGroup(selectionModeButtons);
 
-    // // Add keyboard shortcuts
-    // document.addEventListener('keydown', (event) => {
-    //     // Prevent shortcuts when typing in input fields
-    //     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-    //         return;
-    //     }
-
-    //     switch (event.key.toLowerCase()) {
-    //         case 'q': // Default selection tool in Maya
-    //             document.querySelector('#object-mode')?.click();
-    //             break;
-    //         case 'w': // Move tool
-    //             document.querySelector('#move')?.click();
-    //             break;
-    //         case 'e': // Rotate tool
-    //             document.querySelector('#rot')?.click();
-    //             break;
-    //         case 'r': // Scale tool
-    //             document.querySelector('#scale')?.click();
-    //             break;
-    //         case '1':
-    //             document.querySelector('#object-mode')?.click();
-    //             break;
-    //         case '2':
-    //             document.querySelector('#vertex-mode')?.click();
-    //             break;
-    //         case '3':
-    //             document.querySelector('#edge-mode')?.click();
-    //             break;
-    //         case '4':
-    //             document.querySelector('#face-mode')?.click();
-    //             break;
-    //     }
-    // });
-
-    // // Add tooltips that show keyboard shortcuts
-    // const updateTooltips = () => {
-    //     if (document.querySelector('#move')) {
-    //         document.querySelector('#move').setAttribute('data-tooltip', 'Move Tool (W)');
-    //     }
-    //     if (document.querySelector('#rot')) {
-    //         document.querySelector('#rot').setAttribute('data-tooltip', 'Rotate Tool (E)');
-    //     }
-    //     if (document.querySelector('#scale')) {
-    //         document.querySelector('#scale').setAttribute('data-tooltip', 'Scale Tool (R)');
-    //     }
-    //     if (document.querySelector('#object-mode')) {
-    //         document.querySelector('#object-mode').setAttribute('data-tooltip', 'Object Mode (1)');
-    //     }
-    //     if (document.querySelector('#vertex-mode')) {
-    //         document.querySelector('#vertex-mode').setAttribute('data-tooltip', 'Vertex Mode (2)');
-    //     }
-    //     if (document.querySelector('#edge-mode')) {
-    //         document.querySelector('#edge-mode').setAttribute('data-tooltip', 'Edge Mode (3)');
-    //     }
-    //     if (document.querySelector('#face-mode')) {
-    //         document.querySelector('#face-mode').setAttribute('data-tooltip', 'Face Mode (4)');
-    //     }
-    // };
-
-    // // Run tooltip updates
-    // updateTooltips();
-
     // Temp add object definition, move later
     document.getElementById("add-cube").addEventListener("click", () => {
       Factory.createCube();
-    }, { once: true });
-
-    // document.getElementById("add-sphere").addEventListener("click", () => {
-    //   SceneGraphManager.addObject(PrimitiveFactory.createSphere());
-    // });
+    });
 
     document.getElementById("move").addEventListener("click", () => {
       Transform.transformControls.setMode("translate")
@@ -134,7 +68,7 @@ class UI {
       Selector.selectionMode = 'EDGE';
       Transform.detach();
       Selector.clear();
-  });
+    });
     document.getElementById("face-mode").addEventListener("click", () => {
       Selector.selectionMode = 'FACE';
       Transform.detach();
@@ -145,62 +79,97 @@ class UI {
     document.addEventListener('keydown', (event) => {
       // Handle extrusion with 'E' key
       if (event.key === 'e' && !event.ctrlKey && !event.altKey) {
-        SelectionManagerHEDS.handleExtrusion(event);
+        if (typeof SelectionManagerHEDS !== 'undefined') {
+          SelectionManagerHEDS.handleExtrusion(event);
+        }
       }
     });
-
-    // this.createFaceSplitButton();
-
-    // // Create and add the extrude button to the UI
-    // this.createExtrusionButton();
   }
 
-
-  // createFaceSplitButton() {
-  //     const splitButton = document.createElement('button');
-  //     splitButton.textContent = 'Split Face';
-  //     splitButton.id = 'split-face';
-
-  //     // Find an appropriate container to add the button to
-  //     const container = document.getElementById('toolbar-links') || document.body;
-  //     container.appendChild(splitButton);
-
-  //     splitButton.addEventListener('click', () => {
-  //         const directionOptions = ['auto', 'horizontal', 'vertical'];
-  //         let direction = 'auto';
-
-  //         // Optional: Create a simple dialog to select direction
-  //         const selectedOption = prompt('Select split direction (auto, horizontal, vertical):', 'auto');
-  //         if (selectedOption && directionOptions.includes(selectedOption.toLowerCase())) {
-  //             direction = selectedOption.toLowerCase();
-  //         }
-
-  //         // Call the split method on the selection manager
-  //         SelectionManagerHEDS.selectionManager.performFaceSplit(direction);
-  //     });
-  // }
-
-  // createExtrusionButton() {
-  //     const extrudeButton = document.createElement('button');
-  //     extrudeButton.textContent = 'Extrude Face';
-  //     extrudeButton.id = 'extrude-face';
-
-  //     // Find an appropriate container to add the button to
-  //     const container = document.getElementById('toolbar-links') || document.body;
-  //     container.appendChild(extrudeButton);
-
-  //     extrudeButton.addEventListener('click', () => {
-  //         const distanceInput = prompt('Enter extrusion distance:', '1.0');
-  //         const scaleInput = prompt('Enter scale factor:', '1.0');
-
-  //         const distance = parseFloat(distanceInput) || 1.0;
-  //         const scale = parseFloat(scaleInput) || 1.0;
-
-  //         // Call the extrusion method on the selection manager
-  //         SelectionManagerHEDS.extrudeFace(distance, scale);
-  //     });
-  // }
-
+  // Set up the OBJ import functionality
+  setupImportButton() {
+    // Get the file input and import button elements
+    const fileInput = document.getElementById('import-obj');
+    const importButton = document.getElementById('import-obj-btn');
+    
+    // Make the button click trigger the file input
+    if (importButton && fileInput) {
+      importButton.addEventListener('click', () => {
+        fileInput.click();
+      });
+    }
+    
+    // Handle file selection
+    if (fileInput) {
+      fileInput.addEventListener('change', async (event) => {
+        if (event.target.files && event.target.files.length > 0) {
+          const file = event.target.files[0];
+          
+          // Check if it's an OBJ file
+          if (file.name.toLowerCase().endsWith('.obj')) {
+            try {
+              // Show loading indicator
+              this.showLoading(true);
+              
+              // Import the file
+              const model = await Factory.importOBJ(file);
+              
+              console.log('Model imported successfully:', model);
+              
+              // Center the model in the view
+              this.centerModelInView(model);
+              
+            } catch (error) {
+              console.error('Error importing OBJ file:', error);
+              this.showError('Failed to import OBJ file. Please try another file.');
+            } finally {
+              // Hide loading indicator
+              this.showLoading(false);
+              
+              // Reset the file input so the same file can be imported again
+              fileInput.value = '';
+            }
+          } else {
+            this.showError('Please select an OBJ file.');
+          }
+        }
+      });
+    }
+  }
+  
+  // Helper functions for import
+  showLoading(isLoading) {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+      loadingIndicator.style.display = isLoading ? 'block' : 'none';
+    }
+  }
+  
+  showError(message) {
+    alert(message);
+  }
+  
+  centerModelInView(model) {
+    if (model && model.render && model.render.mesh) {
+      // Calculate the bounding box of the model
+      const boundingBox = new THREE.Box3().setFromObject(model.render.mesh);
+      const center = new THREE.Vector3();
+      boundingBox.getCenter(center);
+      
+      // Position the model at the center of the scene
+      model.render.mesh.position.sub(center);
+      
+      // Optionally, scale the model to fit in view if it's very large or small
+      const size = new THREE.Vector3();
+      boundingBox.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z);
+      
+      if (maxDim > 10) {
+        const scale = 10 / maxDim;
+        model.render.mesh.scale.multiplyScalar(scale);
+      }
+    }
+  }
 
   updateObjectPropertiesPanel(meshWrapper) {
     const updater = new Updater();
@@ -263,47 +232,65 @@ class UI {
     // Attach event listeners to update HEDS object properties
     document.getElementById("position-x").addEventListener("input", (e) => {
       object.position.x = parseFloat(e.target.value);
-      SelectionManagerHEDS.updateHEDSFromTransform();
+      if (typeof SelectionManagerHEDS !== 'undefined') {
+        SelectionManagerHEDS.updateHEDSFromTransform();
+      }
     });
 
     document.getElementById("position-y").addEventListener("input", (e) => {
       object.position.y = parseFloat(e.target.value);
-      updater.rebuildHalfedgeStructure(meshWrapper);
+      if (typeof updater !== 'undefined') {
+        updater.rebuildHalfedgeStructure(meshWrapper);
+      }
     });
 
     document.getElementById("position-z").addEventListener("input", (e) => {
       object.position.z = parseFloat(e.target.value);
-      updater.rebuildHalfedgeStructure(meshWrapper);
+      if (typeof updater !== 'undefined') {
+        updater.rebuildHalfedgeStructure(meshWrapper);
+      }
     });
 
     document.getElementById("rotation-x").addEventListener("input", (e) => {
       object.rotation.x = THREE.MathUtils.degToRad(parseFloat(e.target.value));
-      updater.rebuildHalfedgeStructure(meshWrapper);
+      if (typeof updater !== 'undefined') {
+        updater.rebuildHalfedgeStructure(meshWrapper);
+      }
     });
 
     document.getElementById("rotation-y").addEventListener("input", (e) => {
       object.rotation.y = THREE.MathUtils.degToRad(parseFloat(e.target.value));
-      updater.rebuildHalfedgeStructure(meshWrapper);
+      if (typeof updater !== 'undefined') {
+        updater.rebuildHalfedgeStructure(meshWrapper);
+      }
     });
 
     document.getElementById("rotation-z").addEventListener("input", (e) => {
       object.rotation.z = THREE.MathUtils.degToRad(parseFloat(e.target.value));
-      updater.rebuildHalfedgeStructure(meshWrapper);
+      if (typeof updater !== 'undefined') {
+        updater.rebuildHalfedgeStructure(meshWrapper);
+      }
     });
 
     document.getElementById("scale-x").addEventListener("input", (e) => {
       object.scale.x = parseFloat(e.target.value);
-      updater.rebuildHalfedgeStructure(meshWrapper);
+      if (typeof updater !== 'undefined') {
+        updater.rebuildHalfedgeStructure(meshWrapper);
+      }
     });
 
     document.getElementById("scale-y").addEventListener("input", (e) => {
       object.scale.y = parseFloat(e.target.value);
-      updater.rebuildHalfedgeStructure(meshWrapper);
+      if (typeof updater !== 'undefined') {
+        updater.rebuildHalfedgeStructure(meshWrapper);
+      }
     });
 
     document.getElementById("scale-z").addEventListener("input", (e) => {
       object.scale.z = parseFloat(e.target.value);
-      updater.rebuildHalfedgeStructure(meshWrapper);
+      if (typeof updater !== 'undefined') {
+        updater.rebuildHalfedgeStructure(meshWrapper);
+      }
     });
   }
 
@@ -316,7 +303,6 @@ class UI {
       propertiesPanel.classList.add('collapsed');
     }
   }
-
 }
 
 export default new UI();

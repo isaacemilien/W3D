@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vite App</title>
+  <title>W3D</title>
   <link rel="stylesheet" href="src/normalise.css">
   <link rel="stylesheet" href="src/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
@@ -42,6 +42,10 @@
         <button id="add-plane" data-tooltip="Create Plane">
           <span class="tool-icon">▭</span>
         </button>
+        <button id="import-obj-btn" data-tooltip="Import OBJ">
+          <span class="tool-icon">📥</span>
+        </button>
+        <input type="file" id="import-obj" accept=".obj" style="display: none;">
       </div>
     </div>
 
@@ -77,23 +81,12 @@
         </button>
       </div>
     </div>
-
-    <!-- <div class="toolbar-section">
-      <span class="section-label">MODIFY</span>
-      <div id="toolbar-links">
-        <button id="extrude-face" data-tooltip="Extrude Face">
-          <span class="tool-icon">⇗</span>
-        </button>
-        <button id="split-face" data-tooltip="Split Face">
-          <span class="tool-icon">✂</span>
-        </button>
-        <button id="bevel" data-tooltip="Bevel">
-          <span class="tool-icon">◢</span>
-        </button>
-      </div>
-    </div> -->
   </div>
 
+  <!-- Loading indicator, initially hidden -->
+  <div id="loading-indicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; background: rgba(0,0,0,0.7); color: white; border-radius: 5px; z-index: 9999;">
+    Loading model...
+  </div>
 
 </body>
 <script type="module" src="/src/main.js"></script>

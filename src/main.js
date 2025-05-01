@@ -7,7 +7,6 @@ import UI from './ui/UI';
 import SceneGraph from './services/SceneGraph';
 import { HalfedgeDS } from 'three-mesh-halfedge';
 import Factory from './services/Factory';
-// import Selector from './managers/Selector';
 
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import Queries from './services/Queries';
@@ -22,7 +21,6 @@ Scene.addObject(gridHelper);
 
 // Create initial cube
 SceneGraph.addObject(Factory.createCube());
-
 
 // Update loop  
 function animate() {
