@@ -1,3 +1,28 @@
+/**
+ * Project: W3D
+ * Description: A web-based 3D modelling application enabling users to work with 3D models in browsers without software installation, featuring primitive creation, transformation tools, and mesh operations using Three.js and half-edge data structures for topology management.
+ * 
+ * Open Source Licensing Compliance Notice
+ * ---------------------------------------
+ * This project utilises open-source libraries, and we respectfully acknowledge the creators
+ * and maintainers of these projects. Their contributions have enabled the development of this software.
+ *
+ * Dependencies:
+ * 
+ * - three.js (https://threejs.org/)
+ *   License: MIT License
+ *   Copyright © 2010-2025 three.js authors
+ *   Source: https://github.com/mrdoob/three.js
+ * 
+ * - three-mesh-halfedge (https://github.com/gkjohnson/three-mesh-halfedge)
+ *   License: MIT License
+ *   Copyright © 2019-2025 Geoffrey Johnston
+ *   Source: https://github.com/gkjohnson/three-mesh-halfedge
+ * 
+ * These libraries are licensed under the MIT License, which permits reuse, modification,
+ * and distribution with attribution.
+ */
+
 import * as THREE from 'three'
 import Scene from './core/Scene';
 import Renderer from './core/Renderer';
