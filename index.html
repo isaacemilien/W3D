@@ -17,7 +17,7 @@
     <p id="outliner-title">Outliner</p>
     <div id="outliner-content">
       <ul id="scene-graph">
-        <li><button>111</button></li>
+        <li><button>init</button></li>
       </ul>
     </div>
   </div>
@@ -30,19 +30,19 @@
     <div class="toolbar-section">
       <span class="section-label">CREATE</span>
       <div id="toolbar-links">
-        <button id="add-cube" data-tooltip="Create Cube">
+        <button id="add-cube" aria-label="Create Cube" data-tooltip="Create Cube">
           <span class="tool-icon">◻</span>
         </button>
-        <button id="add-sphere" data-tooltip="Create Sphere">
+        <button id="add-sphere" aria-label="Create Sphere" data-tooltip="Create Sphere">
           <span class="tool-icon">○</span>
         </button>
-        <button id="add-cylinder" data-tooltip="Create Cylinder">
+        <button id="add-cylinder" aria-label="Create Cylinder" data-tooltip="Create Cylinder">
           <span class="tool-icon">⌭</span>
         </button>
-        <button id="add-plane" data-tooltip="Create Plane">
+        <button id="add-plane" aria-label="Create Plane" data-tooltip="Create Plane">
           <span class="tool-icon">▭</span>
         </button>
-        <button id="import-obj-btn" data-tooltip="Import OBJ">
+        <button id="import-obj-btn" aria-label="Import OBJ" data-tooltip="Import OBJ">
           <span class="tool-icon">📥</span>
         </button>
         <input type="file" id="import-obj" accept=".obj" style="display: none;">
@@ -52,13 +52,13 @@
     <div class="toolbar-section">
       <span class="section-label">TRANSFORM</span>
       <div id="toolbar-links">
-        <button id="move" class="mode-button" data-tooltip="Move Tool (W)">
+        <button id="move" class="mode-button" aria-label="Move Tool (W)" data-tooltip="Move Tool (W)">
           <span class="tool-icon">↹</span>
         </button>
-        <button id="rot" class="mode-button" data-tooltip="Rotate Tool">
+        <button id="rot" class="mode-button" aria-label="Rotate Tool" data-tooltip="Rotate Tool">
           <span class="tool-icon">⟳</span>
         </button>
-        <button id="scale" class="mode-button" data-tooltip="Scale Tool (R)">
+        <button id="scale" class="mode-button" aria-label="Scale Tool (R)" data-tooltip="Scale Tool (R)">
           <span class="tool-icon">⤧</span>
         </button>
       </div>
@@ -67,16 +67,16 @@
     <div class="toolbar-section">
       <span class="section-label">SELECTION</span>
       <div id="toolbar-links">
-        <button id="object-mode" class="mode-button active" data-tooltip="Object Mode (1)">
+        <button id="object-mode" class="mode-button active" aria-label="Object Mode (1)" data-tooltip="Object Mode (1)">
           <span class="tool-icon">□</span>
         </button>
-        <button id="vertex-mode" class="mode-button" data-tooltip="Vertex Mode (2)">
+        <button id="vertex-mode" class="mode-button" aria-label="Vertex Mode (2)" data-tooltip="Vertex Mode (2)">
           <span class="tool-icon">•</span>
         </button>
-        <button id="edge-mode" class="mode-button" data-tooltip="Edge Mode (3)">
+        <button id="edge-mode" class="mode-button" aria-label="Edge Mode (3)" data-tooltip="Edge Mode (3)">
           <span class="tool-icon">╱</span>
         </button>
-        <button id="face-mode" class="mode-button" data-tooltip="Face Mode (4)">
+        <button id="face-mode" class="mode-button" aria-label="Face Mode (4)" data-tooltip="Face Mode (4)">
           <span class="tool-icon">▢</span>
         </button>
       </div>
@@ -84,7 +84,8 @@
   </div>
 
   <!-- Loading indicator, initially hidden -->
-  <div id="loading-indicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; background: rgba(0,0,0,0.7); color: white; border-radius: 5px; z-index: 9999;">
+  <div id="loading-indicator"
+    style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; background: rgba(0,0,0,0.7); color: white; border-radius: 5px; z-index: 9999;">
     Loading model...
   </div>
 

@@ -40,15 +40,15 @@ class UI {
     });
 
     document.getElementById("move").addEventListener("click", () => {
-      Transform.transformControls.setMode("translate")
+      Transform.control.setMode("translate")
     });
 
     document.getElementById("rot").addEventListener("click", () => {
-      Transform.transformControls.setMode("rotate")
+      Transform.control.setMode("rotate")
     });
 
     document.getElementById("scale").addEventListener("click", () => {
-      Transform.transformControls.setMode("scale")
+      Transform.control.setMode("scale")
     });
 
     document.getElementById("object-mode").addEventListener("click", () => {

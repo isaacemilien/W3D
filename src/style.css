@@ -24,7 +24,7 @@ body {
   width: 100%;
   height: var(--maya-shelf-height);
   background-color: var(--maya-mid-grey);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   z-index: 100;
   display: flex;
   flex-direction: row;
@@ -72,7 +72,7 @@ body {
 
 #toolbar-links button.active {
   background-color: var(--maya-highlight);
-  box-shadow: inset 0 0 3px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.5);
 }
 
 /* Section labels */
@@ -101,7 +101,7 @@ body {
   border-radius: 2px;
   white-space: nowrap;
   z-index: 1000;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 /* Mode toggle effect */
@@ -135,7 +135,7 @@ body {
   background-color: var(--maya-dark-grey);
   color: var(--maya-text);
   border-right: 1px solid #2a2a2a;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
 }
 
 #outliner-title {
@@ -177,7 +177,7 @@ body {
   background-color: var(--maya-dark-grey);
   color: var(--maya-text);
   border-left: 1px solid #2a2a2a;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
   padding: 0;
   overflow-y: auto;
   transition: transform 0.3s ease-in-out;
@@ -257,10 +257,41 @@ body {
 
 /* Dialog animation */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translate(-50%, -60%); }
-  to { opacity: 1; transform: translate(-50%, -50%); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }
 
 #rights-warning-dialog {
   animation: fadeIn 0.2s ease-out;
+}
+
+/* Add focus styles for keyboard navigation */
+button:focus-visible {
+  outline: 2px solid #4bafff;
+  outline-offset: 2px;
+}
+
+/* Hide focus outline for mouse users but show for keyboard users */
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* For screen reader only content, if needed */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
