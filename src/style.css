@@ -228,3 +228,39 @@ body {
   color: #888;
   font-style: italic;
 }
+
+/* Rights warning dialog styling */
+#rights-warning-dialog {
+  font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+}
+
+#rights-warning-dialog h3 {
+  font-size: 1.1rem;
+  margin-top: 0;
+}
+
+#rights-warning-dialog button {
+  transition: background-color 0.2s;
+}
+
+#rights-warning-dialog button:hover {
+  filter: brightness(1.1);
+}
+
+#cancel-import:hover {
+  background-color: #666 !important;
+}
+
+#confirm-import:hover {
+  background-color: #619bc2 !important;
+}
+
+/* Dialog animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -60%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+#rights-warning-dialog {
+  animation: fadeIn 0.2s ease-out;
+}

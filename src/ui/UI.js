@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import Factory from '../services/Factory';
-// import Updater from '../services/Updater';
 import Selector from '../managers/Selector';
 import Transform from '../managers/Transform';
 
@@ -36,7 +35,6 @@ class UI {
     setupToggleGroup(transformButtons);
     setupToggleGroup(selectionModeButtons);
 
-    // Temp add object definition, move later
     document.getElementById("add-cube").addEventListener("click", () => {
       Factory.createCube();
     });
@@ -53,7 +51,6 @@ class UI {
       Transform.transformControls.setMode("scale")
     });
 
-    // add foreach "mode" generate
     document.getElementById("object-mode").addEventListener("click", () => {
       Selector.selectionMode = 'OBJECT';
       Transform.detach();
@@ -75,7 +72,6 @@ class UI {
       Selector.clear();
     });
 
-    // Add this to your main keyboard event handler
     document.addEventListener('keydown', (event) => {
       // Handle extrusion with 'E' key
       if (event.key === 'e' && !event.ctrlKey && !event.altKey) {
@@ -83,6 +79,69 @@ class UI {
           SelectionManagerHEDS.handleExtrusion(event);
         }
       }
+    });
+    
+    // Create the rights warning dialog
+    this.createRightsWarningDialog();
+  }
+  
+  // Create the rights warning dialog element
+  createRightsWarningDialog() {
+    const dialog = document.createElement('div');
+    dialog.id = 'rights-warning-dialog';
+    dialog.style.display = 'none';
+    dialog.style.position = 'fixed';
+    dialog.style.top = '50%';
+    dialog.style.left = '50%';
+    dialog.style.transform = 'translate(-50%, -50%)';
+    dialog.style.backgroundColor = '#3a3a3a';
+    dialog.style.color = '#cccccc';
+    dialog.style.padding = '20px';
+    dialog.style.borderRadius = '5px';
+    dialog.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
+    dialog.style.zIndex = '9999';
+    dialog.style.width = '400px';
+    dialog.style.maxWidth = '90%';
+    dialog.style.border = '1px solid #555';
+    
+    dialog.innerHTML = `
+      <h3 style="margin-top: 0; color: #ffcc00;">Content Rights Warning</h3>
+      <p>Please ensure you have appropriate rights to modify and use the content you are importing.</p>
+      <p style="margin-bottom: 20px; font-size: 0.85rem; color: #aaa;">Working with content without proper permissions may violate copyright laws.</p>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button id="cancel-import" style="background: #555; border: none; color: #ccc; padding: 6px 12px; cursor: pointer; border-radius: 3px;">Cancel</button>
+        <button id="confirm-import" style="background: #5285a6; border: none; color: #fff; padding: 6px 12px; cursor: pointer; border-radius: 3px;">Proceed</button>
+      </div>
+    `;
+    
+    document.body.appendChild(dialog);
+  }
+
+  // Show the rights warning dialog and return a promise
+  showRightsWarningDialog() {
+    return new Promise((resolve, reject) => {
+      const dialog = document.getElementById('rights-warning-dialog');
+      const confirmButton = document.getElementById('confirm-import');
+      const cancelButton = document.getElementById('cancel-import');
+      
+      dialog.style.display = 'block';
+      
+      const handleConfirm = () => {
+        dialog.style.display = 'none';
+        confirmButton.removeEventListener('click', handleConfirm);
+        cancelButton.removeEventListener('click', handleCancel);
+        resolve(true);
+      };
+      
+      const handleCancel = () => {
+        dialog.style.display = 'none';
+        confirmButton.removeEventListener('click', handleConfirm);
+        cancelButton.removeEventListener('click', handleCancel);
+        resolve(false);
+      };
+      
+      confirmButton.addEventListener('click', handleConfirm);
+      cancelButton.addEventListener('click', handleCancel);
     });
   }
 
@@ -108,6 +167,14 @@ class UI {
           // Check if it's an OBJ file
           if (file.name.toLowerCase().endsWith('.obj')) {
             try {
+              // Show the rights warning dialog before proceeding
+              const shouldProceed = await this.showRightsWarningDialog();
+              
+              if (!shouldProceed) {
+                // User cancelled the import
+                return;
+              }
+              
               // Show loading indicator
               this.showLoading(true);
               
