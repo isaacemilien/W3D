@@ -9,7 +9,8 @@ class Camera {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.set(0, 5, 10);
 
-        this.controls = new OrbitControls(this.camera, document.body);
+        const canvas = document.querySelector('canvas');
+        this.controls = new OrbitControls(this.camera, canvas);
         this.controls.enableDamping = true;
     }
 

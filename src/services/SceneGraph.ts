@@ -1,7 +1,7 @@
 import Scene from '../core/Scene';
 import { Halfedge, Vertex, HalfedgeDS, Face } from 'three-mesh-halfedge';
 import * as THREE from 'three'
-import { Wrapper, SelectionMode } from './types';
+import { Wrapper, SelectionMode } from '../data/types';
 
 
 import Selector from '../managers/Selector';

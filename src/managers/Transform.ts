@@ -176,15 +176,12 @@ class Transform {
         this.control.setMode(mode);
     }
 
-
-
     /**
      * Updates a vertex position properly accounting for object transformations
      */
     private updateVertexPosition(wrapper: Wrapper, vertex: Vertex, newWorldPosition: THREE.Vector3) {
         if (!wrapper || !vertex) return;
 
-        console.log("lkskdjf;sjf;lkdjf;slkjf");
 
         const object = wrapper.render.mesh;
 

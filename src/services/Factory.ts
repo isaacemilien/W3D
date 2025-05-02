@@ -33,6 +33,30 @@ class Factory {
         return wrapper;
     }
 
+    static createSphere(): Wrapper {
+        // Create the logical mesh (authoritative data)
+        const logical = LogicalMesh.createSphere();
+
+        // Create the render mesh (visual representation)
+        const material = new THREE.MeshStandardMaterial({
+            color: "#b2b2b2",
+            metalness: 0,
+            roughness: 0.5
+        });
+        const render = new RenderMesh(material);
+
+        // Update the render mesh from the logical data
+        render.updateFrom(logical);
+
+        // Create the wrapper
+        const wrapper = { logical, render };
+
+        // Add to scene graph
+        SceneGraph.addObject(wrapper);
+
+        return wrapper;
+    }
+
     /**
      * Import an OBJ model and add it to the scene
      */

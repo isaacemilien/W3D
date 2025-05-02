@@ -38,6 +38,9 @@ class UI {
     document.getElementById("add-cube").addEventListener("click", () => {
       Factory.createCube();
     });
+    document.getElementById("add-sphere").addEventListener("click", () => {
+      Factory.createSphere();
+    });
 
     document.getElementById("move").addEventListener("click", () => {
       Transform.control.setMode("translate")
