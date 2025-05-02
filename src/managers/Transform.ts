@@ -86,21 +86,10 @@ class Transform {
                 this.updateVertexPosition(this._wrapper as Wrapper, this.selectedElement as Vertex, this.proxy.position);
             } else if (this._selectionMode === "EDGE") {
 
-                console.log("lksjdflkskjflskjfd");
                 this.updateEdgePosition(this._wrapper as Wrapper, this.selectedElement as Halfedge, this.proxy.position);
             }else if (this._selectionMode === "FACE"){
                 this.updateFacePosition(this._wrapper as Wrapper, this.selectedElement as Face, this.proxy.position);
             }
-
-            // // Update logical mesh vertex position
-            // this.selectedVertex.position.copy(this.proxy.position);
-
-            // // Optional: trigger post-move update (e.g., normals)
-            // this.logicalMesh.updateAfterVertexMove?.(this.selectedVertex);
-
-            // // Update the render mesh immediately
-            // this.renderMesh.updateVertexPosition(this.selectedVertex);
-
         });
 
         this.control.addEventListener('dragging-changed', (event) => {
@@ -233,54 +222,29 @@ class Transform {
 
     updateFacePosition(wrapper: Wrapper, face: Face, newCenter: THREE.Vector3) {
         if (!wrapper || !face) return;
-
-
-        const object = wrapper.render.mesh;
-
-        const objectWorldInverse = new THREE.Matrix4().copy(object.matrixWorld).invert();
-
-        // Calculate the current center of the face in local space
-        const currentCenterLocal = new THREE.Vector3();
-        let count = 0;
-
-        let startEdge = face.halfedge;
-        let currentEdge = startEdge;
-
-        // Collect all vertices of the face
-        const vertices = [];
-
+      
+        const mesh = wrapper.render.mesh;
+      
+        const vertices: Vertex[] = [];
+        let sum = new THREE.Vector3();
+        let edge = face.halfedge;
         do {
-            currentCenterLocal.add(currentEdge.vertex.position);
-            count++;
-            vertices.push(currentEdge.vertex);
-            currentEdge = currentEdge.next;
-        } while (currentEdge !== startEdge);
+          sum.add(edge.vertex.position);
+          vertices.push(edge.vertex);
+          edge = edge.next;
+        } while (edge !== face.halfedge);
+        const oldCenterLocal = sum.divideScalar(vertices.length);
+      
 
-        if (count > 0) {
-            currentCenterLocal.divideScalar(count);
-        }
-
-        // Convert local center to world space
-        const currentCenterWorld = currentCenterLocal.clone()
-            .applyMatrix4(object.matrixWorld);
-
-        // Calculate the offset to move all vertices (in world space)
-        const offsetWorld = new THREE.Vector3()
-            .subVectors(newCenter, currentCenterWorld);
-
-        // Convert the offset to local space
-        const offsetLocal = offsetWorld.clone()
-            .applyMatrix4(objectWorldInverse)
-            .sub(new THREE.Vector3()); // Subtract origin to make it a direction vector
-
-        // Apply the offset to all vertices of the face
-        vertices.forEach(vertex => {
-            vertex.position.add(offsetLocal);
-        });
-
-        // Refresh the mesh geometry
+        const newCenterLocal = mesh.worldToLocal(newCenter.clone());
+      
+        const offsetLocal = newCenterLocal.sub(oldCenterLocal);
+      
+        vertices.forEach(v => v.position.add(offsetLocal));
+      
         wrapper.render.updateFrom(wrapper.logical);
-    }
+      }
+      
 }
 
 export function applyDelta(
